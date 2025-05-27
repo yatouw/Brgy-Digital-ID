@@ -1,51 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
+// Layouts
+import UserLayout from './layouts/user/UserLayout'
+import AdminLayout from './layouts/admin/AdminLayout'
+
+// Shared Pages
+import LandingPage from './pages/shared/LandingPage'
+
+// User Pages
+import UserLogin from './pages/user/UserLogin'
+import UserRegister from './pages/user/UserRegister'
+import UserDashboard from './pages/user/UserDashboard'
+import UserProfile from './pages/user/UserProfile'
+import DigitalID from './pages/user/DigitalID'
+import Services from './pages/user/Services'
+
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import ResidentManagement from './pages/admin/ResidentManagement'
+import IDManagement from './pages/admin/IDManagement'
+import ServicesManagement from './pages/admin/ServicesManagement'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
-        <div className="flex justify-center space-x-4 mb-8">
-          <a href="https://vite.dev" target="_blank">
-            <img src={viteLogo} className="h-16 w-16 hover:scale-110 transition-transform" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank">
-            <img src={reactLogo} className="h-16 w-16 hover:scale-110 transition-transform animate-spin" alt="React logo" />
-          </a>
-        </div>
-        
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">Vite + React</h1>
-        
-        <div className="text-center mb-6">
-          <button 
-            onClick={() => setCount((count) => count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg transform hover:scale-105"
-          >
-            count is {count}
-          </button>
-          <p className="mt-4 text-gray-600">
-            Edit <code className="bg-gray-100 px-2 py-1 rounded text-sm">src/App.jsx</code> and save to test HMR
-          </p>
-        </div>
-        
-        <p className="text-center text-sm text-gray-500">
-          Click on the Vite and React logos to learn more
-        </p>
-        
-        {/* Tailwind CSS Test Section */}
-        <div className="mt-8 p-4 bg-green-100 border-l-4 border-green-500 rounded">
-          <h2 className="text-lg font-semibold text-green-800 mb-2">🎉 Tailwind CSS 4 is Working!</h2>
-          <p className="text-green-700 text-sm">
-            This styled section confirms that Tailwind CSS is properly configured and working in your project.
-          </p>
-        </div>
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+          
+          {/* User Routes */}
+          <Route path="/user/login" element={<UserLogin />} />
+          <Route path="/user/register" element={<UserRegister />} />
+          <Route path="/user/*" element={
+            <UserLayout>
+              <Routes>
+                <Route path="dashboard" element={<UserDashboard />} />
+                <Route path="profile" element={<UserProfile />} />
+                <Route path="digital-id" element={<DigitalID />} />
+                <Route path="services" element={<Services />} />
+                <Route path="" element={<Navigate to="dashboard" replace />} />
+              </Routes>
+            </UserLayout>
+          } />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/*" element={
+            <AdminLayout>
+              <Routes>
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="residents" element={<ResidentManagement />} />
+                <Route path="digital-ids" element={<IDManagement />} />
+                <Route path="services" element={<ServicesManagement />} />
+                <Route path="" element={<Navigate to="dashboard" replace />} />
+              </Routes>
+            </AdminLayout>
+          } />
+          
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
-    </div>
+    </Router>
   )
 }
 
