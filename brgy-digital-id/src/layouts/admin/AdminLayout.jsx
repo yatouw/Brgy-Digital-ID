@@ -23,14 +23,15 @@ const AdminLayout = ({ children }) => {
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'block' : 'hidden'} fixed inset-0 z-40 lg:static lg:block lg:inset-auto lg:z-auto`}>
         <div className="flex h-full">
-          <div className="flex flex-col w-64 bg-gray-900 shadow-lg">
-            {/* Logo */}
+          <div className="flex flex-col w-64 bg-gray-900 shadow-lg">            {/* Logo */}
             <div className="flex items-center justify-center h-16 bg-gray-800">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">A</span>
-                </div>
-                <span className="text-white font-semibold">Admin Panel</span>
+                <img 
+                  src="/src/assets/ebrgy-logo.jpeg" 
+                  alt="eBrgy Logo" 
+                  className="h-8 w-auto rounded-lg"
+                />
+                <span className="text-white font-semibold">eBrgy Admin</span>
               </div>
             </div>
 
@@ -39,10 +40,9 @@ const AdminLayout = ({ children }) => {
               {navigation.map((item) => (
                 <Link
                   key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  to={item.href}                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     location.pathname === item.href
-                      ? 'bg-orange-600 text-white'
+                      ? 'bg-teal-600 text-white'
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`}
                 >
@@ -53,14 +53,13 @@ const AdminLayout = ({ children }) => {
             </nav>
 
             {/* Admin Info & Logout */}
-            <div className="p-4 border-t border-gray-700">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+            <div className="p-4 border-t border-gray-700">              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold">AD</span>
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-white">Administrator</p>
-                  <p className="text-xs text-gray-400">Barangay Aningway</p>
+                  <p className="text-xs text-gray-400">eBrgy System</p>
                 </div>
               </div>
               <button

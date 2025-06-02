@@ -42,37 +42,36 @@ const UserRegister = () => {
       navigate('/user/login')
     }, 1000)
   }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <Link to="/" className="inline-flex items-center space-x-2 text-white hover:text-green-200 mb-6">
+          <Link to="/" className="inline-flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-6 font-medium">
             <span className="text-lg">←</span>
             <span>Back to Home</span>
           </Link>
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-green-600 font-bold text-2xl">B</span>
+          <div className=" flex items-center justify-center mx-auto mb-4 ">
+            <img 
+              src="/src/assets/ebrgy-logo2.png" 
+              alt="eBrgy Logo" 
+              className="h-20 object-contain"
+            />
           </div>
-          <h2 className="text-3xl font-bold text-white">
+          <h2 className="text-3xl font-bold text-gray-900">
             Resident Registration
           </h2>
-          <p className="mt-2 text-green-100">
+          <p className="mt-2 text-gray-600">
             Create your account to get your digital ID
           </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="bg-white/20 rounded-full h-2 mb-6">
+        </div>        {/* Progress Bar */}
+        <div className="bg-gray-200 rounded-full h-3 mb-6">
           <div 
-            className="bg-white h-2 rounded-full transition-all duration-300"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 h-3 rounded-full transition-all duration-500 shadow-sm"
             style={{ width: `${(step / 2) * 100}%` }}
           ></div>
-        </div>
-
-        {/* Registration Form */}
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        </div>        {/* Registration Form */}
+        <div className="bg-white border border-gray-200 rounded-xl shadow-xl p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {step === 1 && (
               <>
@@ -85,28 +84,26 @@ const UserRegister = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       First Name *
-                    </label>
-                    <input
+                    </label>                    <input
                       name="firstName"
                       type="text"
                       required
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                       placeholder="Juan"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Last Name *
-                    </label>
-                    <input
+                    </label>                    <input
                       name="lastName"
                       type="text"
                       required
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                       placeholder="Dela Cruz"
                     />
                   </div>
@@ -115,13 +112,12 @@ const UserRegister = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Middle Name
-                  </label>
-                  <input
+                  </label>                  <input
                     name="middleName"
                     type="text"
                     value={formData.middleName}
                     onChange={handleChange}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                     placeholder="Santos"
                   />
                 </div>
@@ -129,29 +125,27 @@ const UserRegister = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Birth Date *
-                  </label>
-                  <input
+                  </label>                  <input
                     name="birthDate"
                     type="date"
                     required
                     value={formData.birthDate}
                     onChange={handleChange}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Complete Address *
-                  </label>
-                  <textarea
+                  </label>                  <textarea
                     name="address"
                     required
                     value={formData.address}
                     onChange={handleChange}
                     rows={3}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="House No., Street, Barangay Aningway, City, Province"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                    placeholder="House No., Street, eBrgy, City, Province"
                   />
                 </div>
 
