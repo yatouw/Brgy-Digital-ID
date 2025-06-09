@@ -102,15 +102,15 @@ const UserLayout = ({ children }) => {
                 {/* Logout button ripple effect */}
                 <div className="absolute inset-0 rounded-xl bg-red-200/20 scale-0 group-active:scale-100 transition-transform duration-200 ease-out"></div>
               </button>
-            </div>        </div>
-      </div>      {/* Main Content */}
+            </div>       
+             </div>
+      </div>     
+       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden pb-20 lg:pb-0">        {/* Top Header */}
         <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-100/50 sticky top-0 z-30">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center space-x-4">
               <div className="animate-fade-in">
-                <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-                <p className="text-sm text-gray-500">Welcome back, Juan!</p>
               </div>
             </div>
             
@@ -123,15 +123,6 @@ const UserLayout = ({ children }) => {
                 </button>
               </div>
               
-              <div className="hidden sm:flex items-center space-x-3 pl-3 border-l border-gray-200 animate-fade-in">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">Juan Dela Cruz</p>
-                  <p className="text-xs text-gray-500">Resident ID: 2024-001</p>
-                </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center border border-emerald-200 transition-all duration-300 hover:scale-110 hover:rotate-[5deg]">
-                  <span className="text-emerald-700 font-semibold text-sm">JD</span>
-                </div>
-              </div>
             </div>
           </div>
         </header>        {/* Page Content */}
@@ -192,20 +183,7 @@ const UserLayout = ({ children }) => {
                   <div className="absolute inset-0 rounded-xl bg-emerald-200/30 scale-0 group-active:scale-100 transition-transform duration-200 ease-out"></div>
                 </Link>
               )
-            })}
-            
-            {/* Notification/Profile button */}
-            <button className="flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-300 ease-out transform text-gray-500 hover:text-emerald-600 active:scale-95 group relative">
-              <div className="relative z-10 flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 transform group-hover:bg-gray-100 group-hover:scale-110 group-active:scale-95">
-                <FaBell className="w-4 h-4 group-hover:w-5 group-hover:h-5 transition-all duration-300" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-              </div>
-              <span className="relative z-10 text-xs font-medium mt-1 transition-all duration-300 text-gray-600 group-hover:text-emerald-600">
-                Alerts
-              </span>
-              <div className="absolute inset-0 rounded-xl bg-emerald-200/30 scale-0 group-active:scale-100 transition-transform duration-200 ease-out"></div>
-            </button>
+            })}   
           </div>
           
           {/* Bottom safe area for devices with home indicator */}

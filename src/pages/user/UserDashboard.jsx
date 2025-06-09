@@ -105,17 +105,7 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-purple-600 text-xl">🏆</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Points</p>
-              <p className="text-2xl font-bold text-gray-900">250</p>
-            </div>
-          </div>
-        </div>
+       
       </div>
 
       {/* Quick Actions */}
