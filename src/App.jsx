@@ -9,9 +9,11 @@ import AdminLayout from './layouts/admin/AdminLayout'
 // Shared Pages
 import LandingPage from './pages/shared/LandingPage'
 
+// Auth Pages
+import UserLogin from './pages/auth/UserLogin'
+import UserRegister from './pages/auth/UserRegister'
+
 // User Pages
-import UserLogin from './pages/user/UserLogin'
-import UserRegister from './pages/user/UserRegister'
 import UserDashboard from './pages/user/UserDashboard'
 import UserProfile from './pages/user/UserProfile'
 import DigitalID from './pages/user/DigitalID'
@@ -32,9 +34,9 @@ function App() {
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />
           
-          {/* User Routes */}
-          <Route path="/user/login" element={<UserLogin />} />
-          <Route path="/user/register" element={<UserRegister />} />
+          {/* Auth Routes */}
+          <Route path="/auth/login" element={<UserLogin />} />
+          <Route path="/auth/register" element={<UserRegister />} />
           <Route path="/user/*" element={
             <UserLayout>
               <Routes>

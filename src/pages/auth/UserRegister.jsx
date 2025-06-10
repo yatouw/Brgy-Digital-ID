@@ -55,7 +55,7 @@ const UserRegister = () => {
     // TODO: Implement actual registration logic
     setTimeout(() => {
       setIsLoading(false)
-      navigate('/user/login')
+      navigate('/auth/login')
     }, 1500)
   }
 
@@ -528,7 +528,7 @@ const UserRegister = () => {
               </div>
 
               <Link 
-                to="/user/login" 
+                to="/auth/login" 
                 className="w-full flex justify-center py-3 px-4 border-2 border-emerald-200 rounded-xl text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg"
               >
                 Sign In Instead

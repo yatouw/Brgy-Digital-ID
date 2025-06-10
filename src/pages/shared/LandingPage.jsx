@@ -84,14 +84,14 @@ const LandingPage = () => {
           {/* Enhanced CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in-up animation-delay-600">
             <Link 
-              to="/user/register"
+              to="/auth/register"
               className="group relative bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-emerald-700 hover:to-teal-700 transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-emerald-500/50 overflow-hidden"
             >
               <span className="relative z-10">Get Your Digital ID</span>
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
             </Link>
             <Link 
-              to="/user/login"
+              to="/auth/login"
               className="group bg-white/80 backdrop-blur-sm border-2 border-emerald-600 text-emerald-600 px-10 py-4 rounded-xl font-bold text-lg hover:bg-emerald-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
             >
               <span>Resident Login</span>
@@ -198,13 +198,13 @@ const LandingPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link 
-                  to="/user/register"
+                  to="/auth/register"
                   className="inline-block bg-white text-emerald-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   Get Started Today
                 </Link>
                 <Link 
-                  to="/user/login"
+                  to="/auth/login"
                   className="inline-block bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-emerald-600 transition-all duration-300"
                 >
                   Already Registered?
