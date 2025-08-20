@@ -12,6 +12,7 @@ import LandingPage from './pages/shared/LandingPage'
 // Auth Pages
 import UserLogin from './pages/auth/UserLogin'
 import UserRegister from './pages/auth/UserRegister'
+import AdminLogin from './pages/auth/AdminLogin'
 
 // User Pages
 import UserDashboard from './pages/user/UserDashboard'
@@ -20,7 +21,6 @@ import DigitalID from './pages/user/DigitalID'
 import Services from './pages/user/Services'
 
 // Admin Pages
-import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import ResidentManagement from './pages/admin/ResidentManagement'
 import IDManagement from './pages/admin/IDManagement'

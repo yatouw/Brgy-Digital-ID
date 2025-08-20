@@ -99,9 +99,8 @@ const UserRegister = () => {
                 <img 
                   src="/src/assets/ebrgy-logo2.png" 
                   alt="eBrgy Logo" 
-                  className="h-24 object-contain animate-shimmer"
+                  className="h-24 object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
               </div>
             </div>
             

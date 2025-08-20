@@ -11,7 +11,7 @@ const DigitalID = () => {
     middleName: "Santos",
     lastName: "Dela Cruz",
     suffix: "",
-    idNumber: "EBRGY-2024-001234",
+    idNumber: "2024-001234",
     address: "123 Sampaguita Street, Barangay San Miguel",
     city: "Marikina City",
     zipCode: "1800",
@@ -61,149 +61,207 @@ const DigitalID = () => {
       <div className="flex justify-center">
         <div className="relative">
           <div 
-            className={`relative w-96 h-60 transition-transform duration-700 transform-style-3d cursor-pointer ${
+            className={`relative w-[500px] h-80 transition-transform duration-700 transform-style-3d cursor-pointer ${
               isFlipped ? 'rotate-y-180' : ''
             }`}
             onClick={() => setIsFlipped(!isFlipped)}
           >
             {/* Front Side */}
             <div className="absolute inset-0 w-full h-full backface-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl shadow-2xl overflow-hidden relative">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-4 left-4 w-32 h-32 border-4 border-white rounded-full"></div>
-                  <div className="absolute bottom-4 right-4 w-24 h-24 border-4 border-white rounded-full"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 border-2 border-white rounded-full opacity-50"></div>
-                </div>
-
+              <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden relative border border-gray-300">
                 {/* Header */}
-                <div className="relative z-10 bg-white/10 backdrop-blur-sm px-4 py-3 border-b border-white/20">
+                <div className="bg-white px-4 py-2 border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <img 
-                        src="/src/assets/ebrgy-logo2.png" 
-                        alt="eBrgy Logo" 
-                        className="w-8 h-8 object-contain"
-                      />
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">PH</span>
+                      </div>
                       <div>
-                        <h3 className="text-white font-bold text-sm">eBrgy Digital ID</h3>
-                        <p className="text-emerald-100 text-xs">Republic of the Philippines</p>
+                        <div className="text-xs font-bold text-gray-900">REPUBLIKA NG PILIPINAS</div>
+                        <div className="text-xs text-gray-700">Republic of the Philippines</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-white text-xs font-medium">ID No.</div>
-                      <div className="text-emerald-100 text-xs font-mono">{residentData.idNumber}</div>
+                      <div className="text-xs font-bold text-emerald-700">BARANGAY DELPILAR</div>
+                      <div className="text-xs text-gray-600">Digital ID Card</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Main Content */}
-                <div className="relative z-10 p-4 flex space-x-4">
-                  {/* Photo */}
-                  <div className="flex-shrink-0">
-                    <img 
-                      src={residentData.photo} 
-                      alt="Profile" 
-                      className="w-20 h-24 object-cover rounded-lg border-2 border-white/30 shadow-lg"
-                    />
-                  </div>
+                <div className="p-4 bg-white">
+                  <div className="flex space-x-4">
+                    {/* Left Column - Photo and Info */}
+                    <div className="flex-1">
+                      <div className="grid grid-cols-3 gap-4">
+                        {/* Photo */}
+                        <div className="col-span-1">
+                          <div className="w-20 h-24 border border-gray-300 rounded bg-gray-50 overflow-hidden">
+                            <img 
+                              src={residentData.photo} 
+                              alt="Profile" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
 
-                  {/* Details */}
-                  <div className="flex-1 text-white">
-                    <h2 className="font-bold text-lg leading-tight mb-1">{residentData.fullName}</h2>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex items-center">
-                        <FaMapMarkerAlt className="w-3 h-3 mr-2 text-emerald-200" />
-                        <span className="text-emerald-100 text-xs leading-tight">{residentData.address}</span>
+                        {/* Personal Info */}
+                        <div className="col-span-2 space-y-2">
+                          {/* ID Number */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-medium">ID Number</div>
+                            <div className="text-sm font-bold text-gray-900 font-mono">{residentData.idNumber}</div>
+                          </div>
+
+                          {/* Last Name */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-medium">Last Name</div>
+                            <div className="text-sm font-bold text-gray-900 uppercase">{residentData.lastName}</div>
+                          </div>
+
+                          {/* First Name */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-medium">First Name</div>
+                            <div className="text-sm font-bold text-gray-900 uppercase">{residentData.firstName}</div>
+                          </div>
+
+                          {/* Middle Name */}
+                          <div>
+                            <div className="text-xs text-gray-500 font-medium">Middle Name</div>
+                            <div className="text-sm font-bold text-gray-900 uppercase">{residentData.middleName}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center">
-                        <FaCalendar className="w-3 h-3 mr-2 text-emerald-200" />
-                        <span className="text-emerald-100 text-xs">Born: {residentData.birthDate}</span>
+
+                      {/* Address Section */}
+                      <div className="mt-4 space-y-2">
+                        <div>
+                          <div className="text-xs text-gray-500 font-medium">Date of Birth</div>
+                          <div className="text-sm font-bold text-gray-900">{residentData.birthDate}</div>
+                        </div>
+
+                        <div>
+                          <div className="text-xs text-gray-500 font-medium">Address</div>
+                          <div className="text-xs text-gray-800 leading-tight">{residentData.address}</div>
+                          <div className="text-xs text-gray-800">{residentData.city}, {residentData.zipCode}</div>
+                        </div>
                       </div>
-                      <div className="flex space-x-4 text-xs">
-                        <span className="text-emerald-100">Age: {residentData.age}</span>
-                        <span className="text-emerald-100">Gender: {residentData.gender}</span>
-                        <span className="text-emerald-100">Blood: {residentData.bloodType}</span>
+                    </div>
+
+                    {/* Right Column - QR Code */}
+                    <div className="w-20 flex flex-col items-center">
+                      <div className="w-16 h-16 bg-gray-100 border border-gray-300 rounded flex items-center justify-center mb-2">
+                        <FaQrcode className="w-12 h-12 text-gray-400" />
                       </div>
+                      <div className="text-xs text-center text-gray-600">Digital Verification</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Footer */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-sm px-4 py-2 border-t border-white/20">
+                {/* Footer Info */}
+                <div className="absolute bottom-0 left-0 right-0 bg-emerald-50 border-t border-emerald-200 px-4 py-2">
                   <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <FaShieldAlt className="w-3 h-3 mr-1 text-emerald-200" />
-                        <span className="text-emerald-100">Status: {residentData.status}</span>
+                    <div className="flex space-x-4">
+                      <div>
+                        <span className="text-gray-600">Sex: </span>
+                        <span className="font-semibold text-gray-900">{residentData.gender}</span>
                       </div>
-                      <span className="text-emerald-100">Valid until: {residentData.expiryDate}</span>
+                      <div>
+                        <span className="text-gray-600">Blood Type: </span>
+                        <span className="font-semibold text-gray-900">{residentData.bloodType}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Status: </span>
+                        <span className="font-semibold text-emerald-700">{residentData.status}</span>
+                      </div>
                     </div>
-                    <div className="text-emerald-100">Click to flip →</div>
+                    <div className="text-emerald-600 font-medium">Valid: {residentData.expiryDate}</div>
                   </div>
+                </div>
+
+                {/* Security Features */}
+                <div className="absolute top-2 right-2 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center border border-emerald-300">
+                  <FaShieldAlt className="w-3 h-3 text-emerald-600" />
                 </div>
               </div>
             </div>
 
             {/* Back Side */}
             <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
-              <div className="w-full h-full bg-gradient-to-br from-slate-100 to-gray-200 rounded-2xl shadow-2xl overflow-hidden relative border border-gray-300">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute top-4 right-4 w-32 h-32 border-2 border-gray-400 rounded-full"></div>
-                  <div className="absolute bottom-4 left-4 w-24 h-24 border-2 border-gray-400 rounded-full"></div>
-                </div>
-
+              <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden relative border border-gray-200">
                 {/* Header */}
-                <div className="relative z-10 bg-emerald-600 px-4 py-3 text-white">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-sm">Additional Information</h3>
-                    <FaQrcode className="w-5 h-5" />
+                <div className="bg-white-600 px-4 py-3 text-black">
+                  <div className="text-center">
+                    <div className="text-sm font-bold">ADDITIONAL INFORMATION</div>
+                    <div className="text-xs opacity-90">Barangay Delpilar Digital ID</div>
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="relative z-10 p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="p-4 space-y-2 bg-white">
+                  {/* Personal Details Grid */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-gray-500 text-xs font-medium">Civil Status</label>
-                      <p className="text-gray-900 font-medium">{residentData.civilStatus}</p>
+                      <div className="text-xs text-gray-500 font-medium mb-1">Civil Status</div>
+                      <div className="text-sm font-bold text-gray-900">{residentData.civilStatus}</div>
                     </div>
                     <div>
-                      <label className="text-gray-500 text-xs font-medium">Occupation</label>
-                      <p className="text-gray-900 font-medium">{residentData.occupation}</p>
+                      <div className="text-xs text-gray-500 font-medium mb-1">Blood Type</div>
+                      <div className="text-sm font-bold text-gray-900">{residentData.bloodType}</div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center">
-                      <FaPhone className="w-3 h-3 mr-2 text-emerald-600" />
-                      <span className="text-gray-700">{residentData.contactNumber}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FaEnvelope className="w-3 h-3 mr-2 text-emerald-600" />
-                      <span className="text-gray-700 text-xs">{residentData.email}</span>
-                    </div>
+                  <div>
+                    <div className="text-xs text-gray-500 font-medium mb-1">Occupation</div>
+                    <div className="text-sm font-bold text-gray-900">{residentData.occupation}</div>
                   </div>
 
-                  <div className="border-t border-gray-300 pt-3">
-                    <label className="text-gray-500 text-xs font-medium">Emergency Contact</label>
-                    <p className="text-gray-900 text-sm">{residentData.emergencyContact}</p>
-                  </div>
-
-                  {/* QR Code */}
-                  <div className="flex justify-center">
-                    <div className="w-20 h-20 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                      <FaQrcode className="w-12 h-12 text-gray-400" />
+                  {/* Contact Information */}
+                  <div className="border-t border-gray-200 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Left Column - Contact Information */}
+                      <div>
+                        <div className="text-xs text-gray-500 font-medium mb-1">Contact Information</div>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-xs">
+                            <FaPhone className="w-3 h-3 mr-2 text-emerald-600" />
+                            <span className="text-sm font-bold text-gray-900">{residentData.contactNumber}</span>
+                          </div>
+                          <div className="flex items-center text-xs">
+                            <FaEnvelope className="w-3 h-3 mr-2 text-emerald-600" />
+                            <span className="text-sm font-bold text-gray-900">{residentData.email}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Right Column - Emergency Contact */}
+                      <div>
+                        <div className="text-xs text-gray-500 font-medium mb-1">Emergency Contact</div>
+                        <div className="text-sm font-bold text-gray-900">{residentData.emergencyContact}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gray-100 px-4 py-2 border-t border-gray-300">
-                  <div className="flex justify-between items-center text-xs text-gray-600">
-                    <span>Issued: {residentData.issuedDate}</span>
-                    <span>← Click to flip back</span>
+                <div className="absolute bottom-0 left-0 right-0 bg-white-600 px-4 py-2">
+                  <div className="flex justify-between items-center text-xs text-black">
+                    <div>
+                      <span className="font-medium">Issued: </span>
+                      <span className="font-bold">{residentData.issuedDate}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs opacity-90">← Click to view front</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signature Line */}
+                <div className="absolute bottom-8 left-4 right-4">
+                  <div className="border-t border-gray-300 pt-1">
+                    <div className="text-center text-xs text-gray-600">
+                      Digital Signature on File
+                    </div>
                   </div>
                 </div>
               </div>

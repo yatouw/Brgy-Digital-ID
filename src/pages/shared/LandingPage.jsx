@@ -74,7 +74,7 @@ const LandingPage = () => {
           </div>
           
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up">
-            Barangay Aningway Digital ID System
+            Barangay Delpilar Digital ID System
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto animate-fade-in-up animation-delay-300">
             Modernizing resident identification and streamlining barangay transactions 
@@ -96,48 +96,17 @@ const LandingPage = () => {
             >
               <span>Resident Login</span>
             </Link>
+            <Link 
+              to="/admin/login"
+              className="group bg-gray-800/90 backdrop-blur-sm border-2 border-gray-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-700 hover:border-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              <span>Admin Portal</span>
+            </Link>
           </div>
 
           {/* Dynamic Statistics */}
          
         </div>        
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-20">
-          <div className="group bg-gradient-to-br from-emerald-50 to-emerald-100 p-8 rounded-2xl border border-emerald-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:transform hover:scale-105 animate-slide-up">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-4 0v2m0 0h4" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center group-hover:text-emerald-700 transition-colors duration-300">Secure Digital ID</h3>
-            <p className="text-gray-600 text-center text-lg leading-relaxed">
-              Unique, secure digital identification for all barangay residents with <span className="font-semibold text-emerald-600">advanced encryption</span>
-            </p>
-          </div>
-
-          <div className="group bg-gradient-to-br from-teal-50 to-teal-100 p-8 rounded-2xl border border-teal-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:transform hover:scale-105 animate-slide-up animation-delay-200">
-            <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center group-hover:text-teal-700 transition-colors duration-300">Streamlined Services</h3>
-            <p className="text-gray-600 text-center text-lg leading-relaxed">
-              Easy access to clearances, health records, and financial aid with <span className="font-semibold text-teal-600">just a few clicks</span>
-            </p>
-          </div>
-
-          <div className="group bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl border border-blue-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:transform hover:scale-105 animate-slide-up animation-delay-400">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center group-hover:text-blue-700 transition-colors duration-300">Fast & Efficient</h3>
-            <p className="text-gray-600 text-center text-lg leading-relaxed">
-              Reduced paperwork and improved accessibility for all residents with <span className="font-semibold text-blue-600">24/7 availability</span>
-            </p>
-          </div>
-        </div>
 
         {/* Interactive Process Timeline */}
         <div className="mb-20 max-w-6xl mx-auto">
@@ -236,7 +205,7 @@ const LandingPage = () => {
             <div>
               <h4 className="font-bold text-lg mb-4 text-emerald-400">Contact Info</h4>
               <ul className="space-y-2 text-gray-300">
-                <li>📍 Barangay Aningway</li>
+                <li>📍 Barangay Delpilar</li>
                 <li>📞 (02) 8123-4567</li>
                 <li>✉️ info@ebrgy.gov.ph</li>
                 <li>🕒 Mon-Fri 8AM-5PM</li>
@@ -258,7 +227,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Barangay Aningway Digital ID System. All rights reserved.</p>
+            <p>&copy; 2025 Barangay Delpilar Digital ID System. All rights reserved.</p>
           </div>
         </div>
       </div>
