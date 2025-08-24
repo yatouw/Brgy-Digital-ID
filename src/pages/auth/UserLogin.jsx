@@ -197,38 +197,7 @@ const UserLogin = () => {
                 Create Your Account
               </Link>
             </form>
-          </div>          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-4 animate-fade-in-up animation-delay-1000">
-            <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-xl p-6 text-center hover:bg-white/80 hover:shadow-lg transition-all duration-300 hover:scale-105">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Fast & Secure</h3>
-              <p className="text-sm text-gray-600">Advanced encryption protects your data</p>
-            </div>
-            
-            <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-xl p-6 text-center hover:bg-white/80 hover:shadow-lg transition-all duration-300 hover:scale-105">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">Digital ID</h3>
-              <p className="text-sm text-gray-600">Access your digital identification instantly</p>
-            </div>
-            
-            <div className="backdrop-blur-sm bg-white/60 border border-white/20 rounded-xl p-6 text-center hover:bg-white/80 hover:shadow-lg transition-all duration-300 hover:scale-105">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2V7z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-800 mb-2">24/7 Services</h3>
-              <p className="text-sm text-gray-600">Apply for documents anytime, anywhere</p>
-            </div>
-          </div>
+          </div>        
         </div>
       </div>
     </div>
