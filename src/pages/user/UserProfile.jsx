@@ -1,36 +1,129 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   FaUser, FaEdit, FaSave, FaTimes, FaCamera, FaLock, FaBell, 
   FaShieldAlt, FaPhone, FaEnvelope, FaMapMarkerAlt, FaCalendar,
   FaEye, FaEyeSlash, FaCheck, FaExclamationTriangle, FaHistory,
   FaDownload, FaCog, FaKey, FaUserCircle, FaHome, FaHeart
 } from 'react-icons/fa'
+import { useAuth } from '../../contexts/AuthContext'
+import { residentService, userInfoService } from '../../api/appwrite/appwrite'
 
 const UserProfile = () => {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('personal')
   const [isEditing, setIsEditing] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [error, setError] = useState('')
+  
   const [formData, setFormData] = useState({
-    firstName: 'Juan',
-    middleName: 'Santos', 
-    lastName: 'Dela Cruz',
+    // Basic info from residents collection (read-only from registration)
+    firstName: '',
+    middleName: '', 
+    lastName: '',
+    email: '',
+    birthDate: '',
+    // Additional info from user_info collection (editable)
+    gender: '', // Moved to user_info collection
     suffix: '',
-    email: 'juan.delacruz@email.com',
-    phone: '+63 917 123 4567',
-    birthDate: '1990-01-15',
-    gender: 'Male',
-    civilStatus: 'Married',
-    bloodType: 'O+',
-    occupation: 'Software Engineer',
-    address: '123 Sampaguita Street',
-    barangay: 'Barangay San Miguel',
-    city: 'Marikina City',
-    zipCode: '1800',
-    emergencyContactName: 'Maria Dela Cruz',
-    emergencyContactPhone: '+63 917 123 4568',
-    emergencyContactRelation: 'Spouse'
+    phone: '',
+    civilStatus: '',
+    bloodType: '',
+    occupation: '',
+    streetAddress: '',
+    barangay: '',
+    city: '',
+    zipCode: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelation: ''
   })
+
+  // Check if user just registered and needs to complete profile
+  const isNewUser = user?.resident && !user.resident.streetAddress && !user.resident.barangay
+
+  // Initialize form data from user context and user_info collection
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user && user.resident) {
+        try {
+          setLoading(true)
+          
+          console.log('Loading user data for user:', user.id)
+          console.log('User resident data:', user.resident)
+          
+          const resident = user.resident
+          
+          // Load basic info from residents collection
+          const basicData = {
+            firstName: resident.firstName || '',
+            middleName: resident.middleName || '',
+            lastName: resident.lastName || '',
+            email: resident.email || user.email || '',
+            birthDate: resident.birthDate || '',
+            gender: '' // Will be loaded from user_info collection instead
+          }
+          
+          console.log('Basic data loaded:', basicData)
+          
+          // Load additional info from user_info collection
+          const userInfo = await userInfoService.getUserInfoByUserId(user.id)
+          console.log('User info from database:', userInfo)
+          
+          const additionalData = userInfo ? {
+            suffix: userInfo.suffix || '',
+            phone: resident.phone || '', // Get phone from residents collection only
+            gender: userInfo.gender || '', // Get gender from user_info
+            civilStatus: userInfo.civilStatus || '',
+            bloodType: userInfo.bloodType || '',
+            occupation: userInfo.occupation || '',
+            streetAddress: userInfo.address || '', // Match your collection field name
+            barangay: userInfo.barangay || '',
+            city: userInfo.city || '',
+            zipCode: userInfo.zipCode || '',
+            emergencyContactName: userInfo.emergencyContactName || '',
+            emergencyContactPhone: userInfo.emergencyContactPhone || '',
+            emergencyContactRelation: userInfo.emergencyContactRelation || ''
+          } : {
+            suffix: '',
+            phone: resident.phone || '', // Get phone from residents collection only
+            gender: '', // Will be filled when user completes profile
+            civilStatus: '',
+            bloodType: '',
+            occupation: '',
+            streetAddress: '',
+            barangay: '',
+            city: '',
+            zipCode: '',
+            emergencyContactName: '',
+            emergencyContactPhone: '',
+            emergencyContactRelation: ''
+          }
+          
+          console.log('Additional data loaded:', additionalData)
+          
+          setFormData({ ...basicData, ...additionalData })
+          
+          // If new user (no user_info record), automatically enable editing
+          if (!userInfo) {
+            console.log('New user detected, enabling editing mode')
+            setIsEditing(true)
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error)
+          setError('Failed to load profile data.')
+        } finally {
+          setLoading(false)
+        }
+      }
+    }
+    
+    if (user) {
+      loadUserData()
+    }
+  }, [user])
 
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
@@ -61,10 +154,64 @@ const UserProfile = () => {
     setNotifications({ ...notifications, [key]: !notifications[key] })
   }
 
-  const handleSave = () => {
-    // TODO: Implement save logic
-    setIsEditing(false)
-    // Show success message
+  const handleSave = async () => {
+    setLoading(true)
+    setError('')
+    setSaveSuccess(false)
+    
+    try {
+      if (user && user.resident && user.resident.$id) {
+        // Prepare data for user_info collection (additional profile data)
+        const userInfoData = {
+          suffix: formData.suffix,
+          gender: formData.gender, // Add gender to user_info
+          civilStatus: formData.civilStatus,
+          bloodType: formData.bloodType,
+          occupation: formData.occupation,
+          address: formData.streetAddress, // Match your collection field name
+          barangay: formData.barangay,
+          city: formData.city,
+          zipCode: formData.zipCode,
+          emergencyContactName: formData.emergencyContactName,
+          emergencyContactPhone: formData.emergencyContactPhone,
+          emergencyContactRelation: formData.emergencyContactRelation
+        }
+        
+        // Update phone number in residents collection if changed
+        if (formData.phone !== user.resident.phone) {
+          await residentService.updateResident(user.resident.$id, {
+            phone: formData.phone
+          })
+        }
+        
+        // Create or update user_info record
+        console.log('Saving user info data:', userInfoData)
+        await userInfoService.upsertUserInfo(user.id, userInfoData)
+        
+        setSaveSuccess(true)
+        setIsEditing(false)
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setSaveSuccess(false)
+        }, 3000)
+      } else {
+        setError('Unable to save profile. Please try logging in again.')
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      
+      // More specific error messages
+      if (error.message.includes('Unknown attribute')) {
+        setError('Database schema mismatch. Please contact administrator.')
+      } else if (error.message.includes('unauthorized')) {
+        setError('You are not authorized to perform this action. Please log in again.')
+      } else {
+        setError('Failed to save profile. Please try again.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   const recentActivities = [
@@ -75,13 +222,51 @@ const UserProfile = () => {
     { action: 'Digital ID downloaded', date: '2024-03-12 4:30 PM', type: 'download' }
   ]
 
+  // Show loading state if user data is not yet loaded
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 animate-fade-in">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
-        <p className="text-gray-600">Manage your personal information and account preferences</p>
+        <p className="text-gray-600">
+          {isNewUser 
+            ? "Welcome! Please complete your profile information to access all barangay services."
+            : "Manage your personal information and account preferences"
+          }
+        </p>
       </div>
+
+      {/* New User Welcome Alert */}
+      {isNewUser && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FaUserCircle className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-blue-900 font-bold text-lg mb-2">Complete Your Profile</h3>
+              <p className="text-blue-700 mb-4">
+                To access all barangay services and get your digital ID, please provide your complete address information and other details below.
+              </p>
+              <div className="flex items-center text-blue-600 text-sm">
+                <FaCheck className="w-4 h-4 mr-2" />
+                <span>Profile editing is already enabled for you</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -104,21 +289,29 @@ const UserProfile = () => {
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">
                   {formData.firstName} {formData.lastName}
                 </h3>
-                <p className="text-gray-500 text-sm mb-2">ID: EBRGY-2024-001234</p>
+                <p className="text-gray-500 text-sm mb-2">
+                  ID: {user?.resident?.idNumber || 'EBRGY-PENDING'}
+                </p>
                 
                 <div className="flex items-center justify-center space-x-2 mb-4">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-green-600 text-sm font-medium">Verified Resident</span>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    user?.resident?.isVerified ? 'bg-green-400' : 'bg-yellow-400'
+                  }`}></div>
+                  <span className={`text-sm font-medium ${
+                    user?.resident?.isVerified ? 'text-green-600' : 'text-yellow-600'
+                  }`}>
+                    {user?.resident?.isVerified ? 'Verified Resident' : 'Pending Verification'}
+                  </span>
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center text-gray-600">
                     <FaMapMarkerAlt className="w-3 h-3 mr-2 text-emerald-500" />
-                    <span>{formData.barangay}</span>
+                    <span>{formData.barangay || 'Barangay not set'}</span>
                   </div>
                   <div className="flex items-center text-gray-600">
                     <FaCalendar className="w-3 h-3 mr-2 text-emerald-500" />
-                    <span>Member since March 2024</span>
+                    <span>Member since {user?.resident?.registrationDate ? new Date(user.resident.registrationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 'Unknown'}</span>
                   </div>
                 </div>
               </div>
@@ -162,16 +355,50 @@ const UserProfile = () => {
                       <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
                       <button
                         onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${
+                        disabled={loading}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
                           isEditing
                             ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
-                        {isEditing ? <FaSave className="w-4 h-4" /> : <FaEdit className="w-4 h-4" />}
-                        <span>{isEditing ? 'Save Changes' : 'Edit Profile'}</span>
+                        {loading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Saving...</span>
+                          </>
+                        ) : isEditing ? (
+                          <>
+                            <FaSave className="w-4 h-4" />
+                            <span>Save Changes</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaEdit className="w-4 h-4" />
+                            <span>Edit Profile</span>
+                          </>
+                        )}
                       </button>
                     </div>
+
+                    {/* Success/Error Messages */}
+                    {saveSuccess && (
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-4 animate-fade-in">
+                        <div className="flex items-center">
+                          <FaCheck className="w-5 h-5 text-green-500 mr-3" />
+                          <p className="text-green-700 font-medium">Profile updated successfully!</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {error && (
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in">
+                        <div className="flex items-center">
+                          <FaExclamationTriangle className="w-5 h-5 text-red-500 mr-3" />
+                          <p className="text-red-700 font-medium">{error}</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Basic Information */}
@@ -333,8 +560,8 @@ const UserProfile = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
                           <input
                             type="text"
-                            name="address"
-                            value={formData.address}
+                            name="streetAddress"
+                            value={formData.streetAddress}
                             onChange={handleInputChange}
                             disabled={!isEditing}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"

@@ -39,9 +39,14 @@ export const AuthProvider = ({ children }) => {
           setUser(userData)
           setIsAuthenticated(true)
           
-          // Check if user is admin
-          const adminStatus = await adminService.isAdmin(currentUser.$id)
-          setIsAdmin(adminStatus)
+          // Check if user is admin (with error handling)
+          try {
+            const adminStatus = await adminService.isAdmin(currentUser.$id)
+            setIsAdmin(adminStatus)
+          } catch (error) {
+            console.warn('Admin check failed, defaulting to false:', error)
+            setIsAdmin(false)
+          }
         } else {
           // Session expired, clear localStorage
           localStorage.removeItem('user')

@@ -20,6 +20,7 @@ export const DATABASE_ID = "68ab6c3a0032aabf5c59"; // Your database ID
 // Collection IDs (you'll need to create these in Appwrite)
 export const COLLECTIONS = {
   RESIDENTS: "residents",
+  USER_INFO: "user_info",
   DIGITAL_IDS: "digital_ids", 
   SERVICES: "services",
   ADMINS: "admins"
@@ -147,6 +148,71 @@ export const residentService = {
         DATABASE_ID,
         COLLECTIONS.RESIDENTS
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// Database functions for user info
+export const userInfoService = {
+  // Create user info profile
+  async createUserInfo(userInfoData) {
+    try {
+      return await databases.createDocument(
+        DATABASE_ID,
+        COLLECTIONS.USER_INFO,
+        ID.unique(),
+        userInfoData
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get user info by user ID
+  async getUserInfoByUserId(userId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.USER_INFO,
+        [Query.equal('userId', userId)]
+      );
+      return response.documents[0] || null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update user info
+  async updateUserInfo(documentId, userInfoData) {
+    try {
+      return await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.USER_INFO,
+        documentId,
+        userInfoData
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Create or update user info (upsert operation)
+  async upsertUserInfo(userId, userInfoData) {
+    try {
+      const existingInfo = await this.getUserInfoByUserId(userId);
+      
+      if (existingInfo) {
+        // Update existing record
+        return await this.updateUserInfo(existingInfo.$id, userInfoData);
+      } else {
+        // Create new record
+        return await this.createUserInfo({
+          userId,
+          ...userInfoData
+        });
+      }
     } catch (error) {
       throw error;
     }
@@ -309,6 +375,8 @@ export const adminService = {
       );
       return response.documents.length > 0;
     } catch (error) {
+      console.error('Error checking admin status:', error);
+      // Return false instead of throwing to prevent app crashes
       return false;
     }
   },

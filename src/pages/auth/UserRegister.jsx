@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService, residentService } from '../../api/appwrite/appwrite'
+import { useAuth } from '../../contexts/AuthContext'
 
 const UserRegister = () => {
   const [formData, setFormData] = useState({
@@ -9,7 +10,6 @@ const UserRegister = () => {
     middleName: '',
     email: '',
     phone: '',
-    address: '',
     birthDate: '',
     password: '',
     confirmPassword: ''
@@ -25,6 +25,7 @@ const UserRegister = () => {
   const [emailChecking, setEmailChecking] = useState(false)
   const [emailExists, setEmailExists] = useState(false)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleChange = (e) => {
     setFormData({
@@ -94,10 +95,6 @@ const UserRegister = () => {
     }
     if (!formData.birthDate) {
       setError('Birth date is required')
-      return false
-    }
-    if (!formData.address.trim()) {
-      setError('Address is required')
       return false
     }
     return true
@@ -189,22 +186,30 @@ const UserRegister = () => {
           middleName: formData.middleName.trim() || '',
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim(),
-          address: formData.address.trim(),
           birthDate: formData.birthDate,
           status: 'pending',
           isVerified: false,
           registrationDate: new Date().toISOString()
         }
 
-        await residentService.createResident(residentData)
+        const resident = await residentService.createResident(residentData)
 
-        setSuccess('Account created successfully! Redirecting to login...')
+        // Prepare user data for AuthContext
+        const userData = {
+          id: newUser.$id,
+          name: newUser.name,
+          email: newUser.email,
+          resident: resident
+        }
+
+        // Update auth context to keep user logged in
+        await login(userData, 'user')
+
+        setSuccess('Account created successfully! Please complete your profile...')
         
-        // Logout the user and redirect to login
-        await authService.logout()
-        
+        // Redirect to profile completion
         setTimeout(() => {
-          navigate('/auth/login')
+          navigate('/user/profile')
         }, 2000)
       }
     } catch (error) {
@@ -446,35 +451,6 @@ const UserRegister = () => {
                             ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
                             : 'border-gray-200 hover:border-emerald-300'
                         }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Complete Address *
-                    </label>
-                    <div className="relative">
-                      <div className="absolute top-4 left-3 pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <textarea
-                        name="address"
-                        required
-                        value={formData.address}
-                        onChange={handleChange}
-                        onFocus={() => setFocusedInput('address')}
-                        onBlur={() => setFocusedInput(null)}
-                        rows={3}
-                        className={`w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 resize-none ${
-                          focusedInput === 'address' 
-                            ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
-                            : 'border-gray-200 hover:border-emerald-300'
-                        }`}
-                        placeholder="House No., Street, Barangay, City, Province"
                       />
                     </div>
                   </div>
