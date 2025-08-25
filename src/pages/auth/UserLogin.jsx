@@ -36,7 +36,7 @@ const UserLogin = () => {
     
     try {
       // Login with Appwrite
-      const session = await authService.login(formData.email, formData.password)
+      const session = await authService.login(formData.email.trim().toLowerCase(), formData.password)
       
       if (session) {
         // Get current user
@@ -66,11 +66,19 @@ const UserLogin = () => {
     } catch (error) {
       console.error('Login error:', error)
       
-      // Handle different error types
-      if (error.code === 401) {
-        setError('Invalid email or password. Please try again.')
-      } else if (error.code === 429) {
-        setError('Too many login attempts. Please try again later.')
+      // Handle different error types based on Appwrite error codes and messages
+      if (error.code === 401 || error.type === 'user_invalid_credentials') {
+        setError('Invalid email or password. Please check your credentials and try again.')
+      } else if (error.type === 'user_not_found') {
+        setError('No account found with this email address. Please check your email or create a new account.')
+      } else if (error.code === 429 || error.type === 'rate_limit_exceeded') {
+        setError('Too many login attempts. Please try again in a few minutes.')
+      } else if (error.message.includes('email') || error.message.includes('not found')) {
+        setError('No account found with this email address. Please check your email or register for a new account.')
+      } else if (error.message.includes('password') || error.message.includes('credentials')) {
+        setError('Incorrect password. Please check your password and try again.')
+      } else if (error.code >= 500) {
+        setError('Server error. Please try again later.')
       } else {
         setError('Login failed. Please check your credentials and try again.')
       }

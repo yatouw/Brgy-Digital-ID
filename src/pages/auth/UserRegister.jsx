@@ -22,6 +22,8 @@ const UserRegister = () => {
   const [passwordStrength, setPasswordStrength] = useState(0)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [emailChecking, setEmailChecking] = useState(false)
+  const [emailExists, setEmailExists] = useState(false)
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -43,6 +45,41 @@ const UserRegister = () => {
       if (/[0-9]/.test(password)) strength++
       if (/[^A-Za-z0-9]/.test(password)) strength++
       setPasswordStrength(strength)
+    }
+
+    // Check email availability with debounce
+    if (e.target.name === 'email') {
+      setEmailExists(false)
+      const email = e.target.value.trim()
+      
+      if (email && email.includes('@')) {
+        // Clear previous timeout
+        if (window.emailCheckTimeout) {
+          clearTimeout(window.emailCheckTimeout)
+        }
+        
+        // Set new timeout for email check
+        window.emailCheckTimeout = setTimeout(async () => {
+          await checkEmailAvailability(email)
+        }, 500) // Check after 500ms of no typing
+      }
+    }
+  }
+
+  const checkEmailAvailability = async (email) => {
+    if (!email || !email.includes('@')) return
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) return
+    
+    setEmailChecking(true)
+    try {
+      const exists = await residentService.checkEmailExists(email)
+      setEmailExists(exists)
+    } catch (error) {
+      console.error('Error checking email:', error)
+    } finally {
+      setEmailChecking(false)
     }
   }
 
@@ -71,18 +108,42 @@ const UserRegister = () => {
       setError('Email is required')
       return false
     }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email.trim())) {
+      setError('Please enter a valid email address')
+      return false
+    }
+    
+    // Check if email already exists
+    if (emailExists) {
+      setError('This email address is already registered. Please use a different email or try logging in.')
+      return false
+    }
+    
     if (!formData.phone.trim()) {
       setError('Phone number is required')
       return false
     }
+    
+    // Basic phone validation (Philippine format)
+    const phoneRegex = /^(09|\+639)\d{9}$/
+    if (!phoneRegex.test(formData.phone.trim().replace(/\s+/g, ''))) {
+      setError('Please enter a valid Philippine phone number (e.g., 09123456789)')
+      return false
+    }
+    
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long')
       return false
     }
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
       return false
     }
+    
     return true
   }
 
@@ -111,14 +172,14 @@ const UserRegister = () => {
     try {
       // Create user account with Appwrite
       const newUser = await authService.createAccount(
-        formData.email,
+        formData.email.trim().toLowerCase(),
         formData.password,
-        `${formData.firstName} ${formData.lastName}`
+        `${formData.firstName.trim()} ${formData.lastName.trim()}`
       )
 
       if (newUser) {
         // Login the newly created user
-        await authService.login(formData.email, formData.password)
+        await authService.login(formData.email.trim().toLowerCase(), formData.password)
 
         // Create resident profile
         const residentData = {
@@ -126,7 +187,7 @@ const UserRegister = () => {
           firstName: formData.firstName.trim(),
           lastName: formData.lastName.trim(),
           middleName: formData.middleName.trim() || '',
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim(),
           address: formData.address.trim(),
           birthDate: formData.birthDate,
@@ -149,17 +210,23 @@ const UserRegister = () => {
     } catch (error) {
       console.error('Registration error:', error)
       
-      // Handle different error types
-      if (error.code === 409) {
-        setError('An account with this email already exists. Please use a different email or login instead.')
-      } else if (error.code === 400) {
-        setError('Invalid input. Please check your information and try again.')
-      } else if (error.message.includes('email')) {
-        setError('Please enter a valid email address.')
-      } else if (error.message.includes('password')) {
-        setError('Password must be at least 8 characters long.')
+      // Handle different error types based on Appwrite error codes
+      if (error.code === 409 || error.type === 'user_already_exists') {
+        setError('An account with this email address already exists. Please use a different email or try logging in instead.')
+      } else if (error.code === 400 || error.type === 'user_invalid_format') {
+        setError('Invalid email format. Please enter a valid email address.')
+      } else if (error.type === 'user_password_too_short' || error.message.includes('password')) {
+        setError('Password must be at least 8 characters long and contain a mix of letters and numbers.')
+      } else if (error.message.includes('email') || error.message.includes('Email')) {
+        setError('This email address is already registered. Please use a different email or try logging in.')
+      } else if (error.message.includes('unique') || error.message.includes('duplicate')) {
+        setError('An account with this email already exists. Please use a different email address.')
+      } else if (error.code === 429) {
+        setError('Too many registration attempts. Please try again in a few minutes.')
+      } else if (error.code >= 500) {
+        setError('Server error. Please try again later or contact support if the problem persists.')
       } else {
-        setError('Registration failed. Please try again.')
+        setError('Registration failed. Please check your information and try again.')
       }
     } finally {
       setIsLoading(false)
@@ -458,14 +525,50 @@ const UserRegister = () => {
                           onChange={handleChange}
                           onFocus={() => setFocusedInput('email')}
                           onBlur={() => setFocusedInput(null)}
-                          className={`w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
+                          className={`w-full pl-10 pr-12 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                             focusedInput === 'email' 
                               ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
-                              : 'border-gray-200 hover:border-emerald-300'
+                              : emailExists 
+                                ? 'border-red-300 hover:border-red-400'
+                                : formData.email && !emailExists && !emailChecking
+                                  ? 'border-green-300 hover:border-green-400'
+                                  : 'border-gray-200 hover:border-emerald-300'
                           }`}
                           placeholder="juan.delacruz@email.com"
                         />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                          {emailChecking ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>
+                          ) : emailExists ? (
+                            <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          ) : formData.email && !emailExists && formData.email.includes('@') ? (
+                            <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : null}
+                        </div>
                       </div>
+                      {emailExists && (
+                        <p className="text-sm text-red-500 mt-1 flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          This email is already registered. 
+                          <Link to="/auth/login" className="ml-1 text-emerald-600 hover:text-emerald-700 font-medium underline">
+                            Try logging in?
+                          </Link>
+                        </p>
+                      )}
+                      {formData.email && !emailExists && !emailChecking && formData.email.includes('@') && (
+                        <p className="text-sm text-green-600 mt-1 flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Email is available
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1">
@@ -643,8 +746,8 @@ const UserRegister = () => {
                       
                       <button
                         type="submit"
-                        disabled={isLoading || formData.password !== formData.confirmPassword}
-                        className="flex-1 group relative flex justify-center py-4 px-4 border border-transparent rounded-xl text-white font-semibold text-lg bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-700 hover:via-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
+                        disabled={isLoading || formData.password !== formData.confirmPassword || emailExists || emailChecking}
+                        className="flex-1 group relative flex justify-center py-4 px-4 border border-transparent rounded-xl text-white font-semibold text-lg bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-700 hover:via-emerald-600 hover:to-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] disabled:transform-none disabled:shadow-none"
                       >
                         <span className="absolute right-0 inset-y-0 flex items-center pr-3">
                           {isLoading ? (

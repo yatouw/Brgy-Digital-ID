@@ -83,6 +83,21 @@ export const authService = {
 
 // Database functions for residents
 export const residentService = {
+  // Check if email already exists
+  async checkEmailExists(email) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.RESIDENTS,
+        [Query.equal('email', email.toLowerCase())]
+      );
+      return response.documents.length > 0;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  },
+
   // Create resident profile
   async createResident(residentData) {
     try {
