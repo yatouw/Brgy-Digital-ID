@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authService, residentService } from '../../api/appwrite/appwrite'
 
 const UserRegister = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,8 @@ const UserRegister = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [focusedInput, setFocusedInput] = useState(null)
   const [passwordStrength, setPasswordStrength] = useState(0)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -26,6 +29,9 @@ const UserRegister = () => {
       ...formData,
       [e.target.name]: e.target.value
     })
+
+    // Clear error when user starts typing
+    if (error) setError('')
 
     // Calculate password strength
     if (e.target.name === 'password') {
@@ -40,23 +46,124 @@ const UserRegister = () => {
     }
   }
 
+  const validateStep1 = () => {
+    if (!formData.firstName.trim()) {
+      setError('First name is required')
+      return false
+    }
+    if (!formData.lastName.trim()) {
+      setError('Last name is required')
+      return false
+    }
+    if (!formData.birthDate) {
+      setError('Birth date is required')
+      return false
+    }
+    if (!formData.address.trim()) {
+      setError('Address is required')
+      return false
+    }
+    return true
+  }
+
+  const validateStep2 = () => {
+    if (!formData.email.trim()) {
+      setError('Email is required')
+      return false
+    }
+    if (!formData.phone.trim()) {
+      setError('Phone number is required')
+      return false
+    }
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long')
+      return false
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return false
+    }
+    return true
+  }
+
   const handleNextStep = () => {
-    setStep(step + 1)
+    setError('')
+    if (validateStep1()) {
+      setStep(step + 1)
+    }
   }
 
   const handlePrevStep = () => {
+    setError('')
     setStep(step - 1)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Implement actual registration logic
-    setTimeout(() => {
+    if (!validateStep2()) {
       setIsLoading(false)
-      navigate('/auth/login')
-    }, 1500)
+      return
+    }
+
+    try {
+      // Create user account with Appwrite
+      const newUser = await authService.createAccount(
+        formData.email,
+        formData.password,
+        `${formData.firstName} ${formData.lastName}`
+      )
+
+      if (newUser) {
+        // Login the newly created user
+        await authService.login(formData.email, formData.password)
+
+        // Create resident profile
+        const residentData = {
+          userId: newUser.$id,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          middleName: formData.middleName.trim() || '',
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+          birthDate: formData.birthDate,
+          status: 'pending',
+          isVerified: false,
+          registrationDate: new Date().toISOString()
+        }
+
+        await residentService.createResident(residentData)
+
+        setSuccess('Account created successfully! Redirecting to login...')
+        
+        // Logout the user and redirect to login
+        await authService.logout()
+        
+        setTimeout(() => {
+          navigate('/auth/login')
+        }, 2000)
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      
+      // Handle different error types
+      if (error.code === 409) {
+        setError('An account with this email already exists. Please use a different email or login instead.')
+      } else if (error.code === 400) {
+        setError('Invalid input. Please check your information and try again.')
+      } else if (error.message.includes('email')) {
+        setError('Please enter a valid email address.')
+      } else if (error.message.includes('password')) {
+        setError('Password must be at least 8 characters long.')
+      } else {
+        setError('Registration failed. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getPasswordStrengthColor = () => {
@@ -85,7 +192,8 @@ const UserRegister = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl w-full space-y-8 animate-fade-in-up">          {/* Header */}
+        <div className="max-w-2xl w-full space-y-8 animate-fade-in-up">
+          {/* Header */}
           <div className="text-center animate-slide-in-left">
             <Link to="/" className="inline-flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-8 font-medium transition-all hover:scale-105 hover:shadow-lg backdrop-blur-sm bg-white/30 rounded-full px-4 py-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +218,9 @@ const UserRegister = () => {
             <p className="text-lg text-gray-600 max-w-md mx-auto">
               Create your account and get your digital ID instantly
             </p>
-          </div>          {/* Progress Bar */}
+          </div>
+
+          {/* Progress Bar */}
           <div className="relative animate-slide-in-right">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-emerald-600">
@@ -128,9 +238,42 @@ const UserRegister = () => {
                 <div className="h-full bg-gradient-to-r from-white/20 to-transparent animate-shimmer"></div>
               </div>
             </div>
-          </div>          {/* Registration Form */}
+          </div>
+
+          {/* Registration Form */}
           <div className="backdrop-blur-sm bg-white/80 border border-white/20 rounded-2xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Error/Success Messages */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 animate-shake">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-green-700">{success}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {step === 1 && (
                 <div className="animate-fade-in-up">
                   <div className="text-center mb-8">
@@ -282,7 +425,9 @@ const UserRegister = () => {
                     Continue to Account Setup
                   </button>
                 </div>
-              )}              {step === 2 && (
+              )}
+
+              {step === 2 && (
                 <div className="animate-fade-in-up">
                   <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mb-4">

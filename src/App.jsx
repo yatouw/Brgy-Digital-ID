@@ -2,6 +2,9 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
+// Auth Components
+import { ProtectedRoute, PublicRoute, AdminRoute } from './components/ProtectedRoute'
+
 // Layouts
 import UserLayout from './layouts/user/UserLayout'
 import AdminLayout from './layouts/admin/AdminLayout'
@@ -31,39 +34,76 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Routes>
-          {/* Landing Page */}
+          {/* ============================================ */}
+          {/* PUBLIC ROUTES - Always accessible */}
+          {/* ============================================ */}
+          
+          {/* Landing Page - Always accessible */}
           <Route path="/" element={<LandingPage />} />
           
-          {/* Auth Routes */}
-          <Route path="/auth/login" element={<UserLogin />} />
-          <Route path="/auth/register" element={<UserRegister />} />
+          {/* ============================================ */}
+          {/* AUTH ROUTES - Only accessible when NOT logged in */}
+          {/* ============================================ */}
+          
+          <Route path="/auth/login" element={
+            <PublicRoute>
+              <UserLogin />
+            </PublicRoute>
+          } />
+          
+          <Route path="/auth/register" element={
+            <PublicRoute>
+              <UserRegister />
+            </PublicRoute>
+          } />
+          
+          <Route path="/auth/admin-login" element={
+            <PublicRoute>
+              <AdminLogin />
+            </PublicRoute>
+          } />
+          
+          {/* ============================================ */}
+          {/* USER ROUTES - Protected, requires login */}
+          {/* ============================================ */}
+          
           <Route path="/user/*" element={
-            <UserLayout>
-              <Routes>
-                <Route path="dashboard" element={<UserDashboard />} />
-                <Route path="profile" element={<UserProfile />} />
-                <Route path="digital-id" element={<DigitalID />} />
-                <Route path="services" element={<Services />} />
-                <Route path="" element={<Navigate to="dashboard" replace />} />
-              </Routes>
-            </UserLayout>
+            <ProtectedRoute>
+              <UserLayout>
+                <Routes>
+                  <Route path="dashboard" element={<UserDashboard />} />
+                  <Route path="profile" element={<UserProfile />} />
+                  <Route path="digital-id" element={<DigitalID />} />
+                  <Route path="services" element={<Services />} />
+                  <Route path="" element={<Navigate to="dashboard" replace />} />
+                </Routes>
+              </UserLayout>
+            </ProtectedRoute>
           } />
           
-          {/* Admin Routes */}
-          <Route path="/auth/login" element={<AdminLogin />} />
+          {/* ============================================ */}
+          {/* ADMIN ROUTES - Protected, requires admin login */}
+          {/* ============================================ */}
+          
           <Route path="/admin/*" element={
-            <AdminLayout>
-              <Routes>
-                <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="residents" element={<ResidentManagement />} />
-                <Route path="digital-ids" element={<IDManagement />} />
-                <Route path="services" element={<ServicesManagement />} />
-                <Route path="" element={<Navigate to="dashboard" replace />} />
-              </Routes>
-            </AdminLayout>
+            <AdminRoute>
+              <AdminLayout>
+                <Routes>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="residents" element={<ResidentManagement />} />
+                  <Route path="digital-ids" element={<IDManagement />} />
+                  <Route path="services" element={<ServicesManagement />} />
+                  <Route path="" element={<Navigate to="dashboard" replace />} />
+                </Routes>
+              </AdminLayout>
+            </AdminRoute>
           } />
           
-          {/* Fallback route */}
+          {/* ============================================ */}
+          {/* FALLBACK ROUTES */}
+          {/* ============================================ */}
+          
+          {/* Catch all undefined routes and redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

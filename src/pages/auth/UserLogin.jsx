@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { authService, residentService } from '../../api/appwrite/appwrite'
+import { useAuth } from '../../contexts/AuthContext'
 
 const UserLogin = () => {
   const [formData, setFormData] = useState({
@@ -9,24 +11,72 @@ const UserLogin = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [focusedInput, setFocusedInput] = useState(null)
+  const [error, setError] = useState('')
+  
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
+  
+  // Get the intended destination or default to dashboard
+  const from = location.state?.from?.pathname || '/user/dashboard'
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Implement actual login logic
-    setTimeout(() => {
+    try {
+      // Login with Appwrite
+      const session = await authService.login(formData.email, formData.password)
+      
+      if (session) {
+        // Get current user
+        const user = await authService.getCurrentUser()
+        
+        // Get resident profile
+        const resident = await residentService.getResidentByUserId(user.$id)
+        
+        if (resident) {
+          // Prepare user data
+          const userData = {
+            id: user.$id,
+            name: user.name,
+            email: user.email,
+            resident: resident
+          }
+          
+          // Update auth context
+          await login(userData, 'user')
+          
+          // Navigate to intended destination
+          navigate(from, { replace: true })
+        } else {
+          setError('Resident profile not found. Please contact administrator.')
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      
+      // Handle different error types
+      if (error.code === 401) {
+        setError('Invalid email or password. Please try again.')
+      } else if (error.code === 429) {
+        setError('Too many login attempts. Please try again later.')
+      } else {
+        setError('Login failed. Please check your credentials and try again.')
+      }
+    } finally {
       setIsLoading(false)
-      navigate('/user/dashboard')
-    }, 1000)
+    }
   }
 
   return (
@@ -39,7 +89,8 @@ const UserLogin = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg w-full space-y-8 animate-fade-in-up">          {/* Header */}
+        <div className="max-w-lg w-full space-y-8 animate-fade-in-up">
+          {/* Header */}
           <div className="text-center animate-slide-in-left">
             <Link to="/" className="inline-flex items-center space-x-2 text-emerald-600 hover:text-emerald-700 mb-8 font-medium transition-all hover:scale-105 hover:shadow-lg backdrop-blur-sm bg-white/30 rounded-full px-4 py-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,9 +115,27 @@ const UserLogin = () => {
             <p className="text-lg text-gray-600 max-w-md mx-auto">
               Access your digital ID and barangay services with ease
             </p>
-          </div>          {/* Login Form */}
+          </div>
+
+          {/* Login Form */}
           <div className="backdrop-blur-sm bg-white/80 border border-white/20 rounded-2xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500 animate-slide-in-right">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 animate-shake">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                   Email Address
