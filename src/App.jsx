@@ -4,6 +4,7 @@ import './App.css'
 
 // Auth Components
 import { ProtectedRoute, PublicRoute, AdminRoute } from './components/ProtectedRoute'
+import SessionIndicator from './components/SessionIndicator'
 
 // Layouts
 import UserLayout from './layouts/user/UserLayout'
@@ -106,6 +107,9 @@ function App() {
           {/* Catch all undefined routes and redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        
+        {/* Session Indicator - Shows for authenticated users */}
+        <SessionIndicator />
       </div>
     </Router>
   )

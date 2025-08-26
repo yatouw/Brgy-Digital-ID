@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { authService, residentService, adminService } from '../api/appwrite/appwrite'
+import sessionManager from '../utils/sessionManager'
 
 // Create AuthContext
 const AuthContext = createContext({
@@ -9,7 +10,9 @@ const AuthContext = createContext({
   isAdmin: false,
   login: () => {},
   logout: () => {},
-  checkAuthStatus: () => {}
+  checkAuthStatus: () => {},
+  extendSession: () => {},
+  getSessionTimeRemaining: () => 0
 })
 
 // AuthProvider component
@@ -18,25 +21,69 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [sessionWarningShown, setSessionWarningShown] = useState(false)
 
   useEffect(() => {
     checkAuthStatus()
+    setupSessionCallbacks()
   }, [])
+
+  // Setup session manager callbacks
+  const setupSessionCallbacks = () => {
+    sessionManager.setSessionCallbacks(
+      // On session expired
+      () => {
+        handleSessionExpired()
+      },
+      // On session warning
+      () => {
+        showSessionWarning()
+      }
+    )
+  }
+
+  // Handle session expiration
+  const handleSessionExpired = async () => {
+    setUser(null)
+    setIsAuthenticated(false)
+    setIsAdmin(false)
+    // Session manager will handle the logout and redirect
+  }
+
+  // Show session warning dialog
+  const showSessionWarning = () => {
+    if (sessionWarningShown) return
+    setSessionWarningShown(true)
+
+    const extendSession = window.confirm(
+      'Your session will expire in 5 minutes due to inactivity. Would you like to extend your session?'
+    )
+    
+    if (extendSession) {
+      sessionManager.extendSession()
+      setSessionWarningShown(false)
+    } else {
+      // User chose not to extend, logout immediately
+      logout()
+    }
+    
+    // Reset warning flag after a delay
+    setTimeout(() => setSessionWarningShown(false), 60000) // Reset after 1 minute
+  }
 
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true)
       
-      // Check if user data exists in localStorage
-      const storedUser = localStorage.getItem('user')
+      // Check session manager first
+      const storedUser = sessionManager.getSessionData('user')
       
       if (storedUser) {
-        // Verify the session is still valid with Appwrite
+        // Only verify with Appwrite if we have local session data
         const currentUser = await authService.getCurrentUser()
         
         if (currentUser) {
-          const userData = JSON.parse(storedUser)
-          setUser(userData)
+          setUser(storedUser)
           setIsAuthenticated(true)
           
           // Check if user is admin (with error handling)
@@ -48,35 +95,56 @@ export const AuthProvider = ({ children }) => {
             setIsAdmin(false)
           }
         } else {
-          // Session expired, clear localStorage
-          localStorage.removeItem('user')
+          // Session expired, clear everything
+          sessionManager.clearAllSessionData()
           setUser(null)
           setIsAuthenticated(false)
           setIsAdmin(false)
         }
       } else {
-        // Try to get current user from Appwrite
-        const currentUser = await authService.getCurrentUser()
-        
-        if (currentUser) {
-          // User is logged in but not in localStorage, fetch resident data
-          const resident = await residentService.getResidentByUserId(currentUser.$id)
+        // No local session, check if there's an active Appwrite session
+        // Only call getCurrentUser once if no local session exists
+        try {
+          const currentUser = await authService.getCurrentUser()
           
-          if (resident) {
-            const userData = {
-              id: currentUser.$id,
-              name: currentUser.name,
-              email: currentUser.email,
-              resident: resident
+          if (currentUser) {
+            // User is logged in but not in session storage, fetch resident data
+            const resident = await residentService.getResidentByUserId(currentUser.$id)
+            
+            if (resident) {
+              const userData = {
+                id: currentUser.$id,
+                name: currentUser.name,
+                email: currentUser.email,
+                resident: resident
+              }
+              
+              sessionManager.setSessionData('user', userData)
+              setUser(userData)
+              setIsAuthenticated(true)
+              
+              // Check if user is admin
+              const adminStatus = await adminService.isAdmin(currentUser.$id)
+              setIsAdmin(adminStatus)
             }
-            
-            localStorage.setItem('user', JSON.stringify(userData))
-            setUser(userData)
-            setIsAuthenticated(true)
-            
-            // Check if user is admin
-            const adminStatus = await adminService.isAdmin(currentUser.$id)
-            setIsAdmin(adminStatus)
+          } else {
+            // No session at all, set to logged out state
+            setUser(null)
+            setIsAuthenticated(false)
+            setIsAdmin(false)
+          }
+        } catch (error) {
+          // If getCurrentUser fails (401), user is not logged in
+          if (error.code === 401 || error.type === 'general_unauthorized_scope') {
+            setUser(null)
+            setIsAuthenticated(false)
+            setIsAdmin(false)
+          } else {
+            console.error('Auth check failed:', error)
+            setUser(null)
+            setIsAuthenticated(false)
+            setIsAdmin(false)
+            sessionManager.clearAllSessionData()
           }
         }
       }
@@ -85,7 +153,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null)
       setIsAuthenticated(false)
       setIsAdmin(false)
-      localStorage.removeItem('user')
+      sessionManager.clearAllSessionData()
     } finally {
       setIsLoading(false)
     }
@@ -95,8 +163,8 @@ export const AuthProvider = ({ children }) => {
     setUser(userData)
     setIsAuthenticated(true)
     setIsAdmin(userType === 'admin')
-    localStorage.setItem('user', JSON.stringify(userData))
-    localStorage.setItem('userType', userType)
+    sessionManager.setSessionData('user', userData)
+    sessionManager.setSessionData('userType', userType)
   }
 
   const logout = async () => {
@@ -108,9 +176,19 @@ export const AuthProvider = ({ children }) => {
       setUser(null)
       setIsAuthenticated(false)
       setIsAdmin(false)
-      localStorage.removeItem('user')
-      localStorage.removeItem('userType')
+      sessionManager.clearAllSessionData()
     }
+  }
+
+  // Extend session function
+  const extendSession = () => {
+    sessionManager.extendSession()
+    setSessionWarningShown(false)
+  }
+
+  // Get remaining session time
+  const getSessionTimeRemaining = () => {
+    return sessionManager.getSessionTimeRemaining()
   }
 
   const value = {
@@ -120,7 +198,9 @@ export const AuthProvider = ({ children }) => {
     isAdmin,
     login,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    extendSession,
+    getSessionTimeRemaining
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

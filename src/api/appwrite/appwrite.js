@@ -68,6 +68,11 @@ export const authService = {
     try {
       return await account.get();
     } catch (error) {
+      // Don't log 401 errors as they're expected when user is not logged in
+      if (error.code === 401 || error.type === 'general_unauthorized_scope') {
+        return null;
+      }
+      console.error('Error getting current user:', error);
       return null;
     }
   },
@@ -389,6 +394,47 @@ export const adminService = {
         COLLECTIONS.ADMINS,
         ID.unique(),
         adminData
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get admin by user ID
+  async getAdminByUserId(userId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.ADMINS,
+        [Query.equal('userId', userId)]
+      );
+      return response.documents[0] || null;
+    } catch (error) {
+      console.error('Error getting admin:', error);
+      return null;
+    }
+  },
+
+  // Get all admins
+  async getAllAdmins() {
+    try {
+      return await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.ADMINS
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Update admin status
+  async updateAdminStatus(documentId, isActive) {
+    try {
+      return await databases.updateDocument(
+        DATABASE_ID,
+        COLLECTIONS.ADMINS,
+        documentId,
+        { isActive, updatedAt: new Date().toISOString() }
       );
     } catch (error) {
       throw error;

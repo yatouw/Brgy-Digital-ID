@@ -97,7 +97,7 @@ const LandingPage = () => {
               <span>Resident Login</span>
             </Link>
             <Link 
-              to="/auth/login"
+              to="/auth/admin-login"
               className="group bg-gray-800/90 backdrop-blur-sm border-2 border-gray-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-700 hover:border-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
             >
               <span>Admin Portal</span>

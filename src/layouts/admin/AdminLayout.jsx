@@ -1,11 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FaTachometerAlt, FaUsers, FaIdCard, FaCogs, FaBell, FaSignOutAlt, FaBars } from 'react-icons/fa'
+import { useAuth } from '../../contexts/AuthContext'
 
 const AdminLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: FaTachometerAlt },
@@ -14,9 +17,18 @@ const AdminLayout = ({ children }) => {
     { name: 'Services', href: '/admin/services', icon: FaCogs },
   ]
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic
-    navigate('/')
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await logout()
+      navigate('/')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Even if logout fails, redirect to home
+      navigate('/')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   return (
@@ -100,12 +112,17 @@ const AdminLayout = ({ children }) => {
             
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100 hover:shadow-md group transform hover:scale-[1.02] active:scale-[0.98]"
+              disabled={isLoggingOut}
+              className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100 hover:shadow-md group transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative"
             >
               <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3 group-hover:bg-red-100 transition-all duration-300 group-hover:rotate-[10deg]">
-                <FaSignOutAlt className="w-4 h-4" />
+                {isLoggingOut ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                ) : (
+                  <FaSignOutAlt className="w-4 h-4" />
+                )}
               </div>
-              <span>Logout</span>
+              <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
               
               {/* Logout button ripple effect */}
               <div className="absolute inset-0 rounded-xl bg-red-200/20 scale-0 group-active:scale-100 transition-transform duration-200 ease-out"></div>
@@ -191,12 +208,17 @@ const AdminLayout = ({ children }) => {
               
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100 hover:shadow-md group"
+                disabled={isLoggingOut}
+                className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100 hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3 group-hover:bg-red-100 transition-all duration-300">
-                  <FaSignOutAlt className="w-4 h-4" />
+                  {isLoggingOut ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                  ) : (
+                    <FaSignOutAlt className="w-4 h-4" />
+                  )}
                 </div>
-                <span>Logout</span>
+                <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
               </button>
             </div>
           </div>

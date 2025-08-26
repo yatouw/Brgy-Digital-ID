@@ -1,33 +1,92 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FaLock, FaUser, FaEye, FaEyeSlash, FaShieldAlt } from 'react-icons/fa'
+import { authService, adminService } from '../../api/appwrite/appwrite'
+import { useAuth } from '../../contexts/AuthContext'
 
 const AdminLogin = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [focusedInput, setFocusedInput] = useState(null)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
     
-    // TODO: Implement actual admin login logic
-    setTimeout(() => {
+    try {
+      // First, authenticate with Appwrite Auth
+      const session = await authService.login(formData.email.trim().toLowerCase(), formData.password)
+      
+      // Get the current user
+      const currentUser = await authService.getCurrentUser()
+      
+      if (currentUser) {
+        // Check if the user is an admin
+        const isAdminUser = await adminService.isAdmin(currentUser.$id)
+        
+        if (isAdminUser) {
+          // Get admin details
+          const adminData = await adminService.getAdminByUserId(currentUser.$id)
+          
+          // Create user data for admin
+          const adminUserData = {
+            id: currentUser.$id,
+            name: currentUser.name,
+            email: currentUser.email,
+            isAdmin: true,
+            adminData: adminData
+          }
+          
+          // Log in as admin
+          await login(adminUserData, 'admin')
+          
+          // Navigate to admin dashboard
+          navigate('/admin/dashboard')
+        } else {
+          // User exists but is not an admin
+          await authService.logout()
+          setError('Access denied. This account does not have administrator privileges.')
+        }
+      }
+    } catch (error) {
+      console.error('Admin login error:', error)
+      
+      // Handle specific error messages
+      if (error.code === 401 || error.type === 'user_invalid_credentials') {
+        setError('Invalid email or password. Please check your credentials and try again.')
+      } else if (error.type === 'user_not_found') {
+        setError('No account found with this email address.')
+      } else if (error.code === 429 || error.type === 'rate_limit_exceeded') {
+        setError('Too many login attempts. Please try again in a few minutes.')
+      } else if (error.message.includes('email') || error.message.includes('not found')) {
+        setError('No account found with this email address. Please check your email.')
+      } else if (error.message.includes('password') || error.message.includes('credentials')) {
+        setError('Incorrect password. Please check your password and try again.')
+      } else if (error.code >= 500) {
+        setError('Server error. Please try again later.')
+      } else {
+        setError('Login failed. Please check your credentials and try again.')
+      }
+    } finally {
       setIsLoading(false)
-      navigate('/admin/dashboard')
-    }, 1000)
+    }
   }
 
   return (
@@ -69,30 +128,44 @@ const AdminLogin = () => {
 
           {/* Login Form */}
           <div className="backdrop-blur-sm bg-white/80 border border-white/20 rounded-2xl shadow-2xl p-8 hover:shadow-3xl transition-all duration-500 animate-slide-in-right">
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 animate-shake">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-1">
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Admin Username
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Admin Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FaUser className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    id="username"
-                    name="username"
-                    type="text"
+                    id="email"
+                    name="email"
+                    type="email"
                     required
-                    value={formData.username}
+                    value={formData.email}
                     onChange={handleChange}
-                    onFocus={() => setFocusedInput('username')}
+                    onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput(null)}
                     className={`w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
-                      focusedInput === 'username' 
+                      focusedInput === 'email' 
                         ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
                         : 'border-gray-200 hover:border-emerald-300'
                     }`}
-                    placeholder="Enter your admin username"
+                    placeholder="Enter your admin email"
                   />
                 </div>
               </div>
