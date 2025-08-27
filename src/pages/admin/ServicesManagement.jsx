@@ -132,12 +132,10 @@ const ServicesManagement = () => {
   }
 
   const handleApprove = (requestId) => {
-    console.log('Approving request:', requestId)
     // TODO: Implement approval logic
   }
 
   const handleReject = (requestId) => {
-    console.log('Rejecting request:', requestId)
     // TODO: Implement rejection logic
   }
 

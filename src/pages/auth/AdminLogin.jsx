@@ -14,7 +14,20 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [focusedInput, setFocusedInput] = useState(null)
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, user, isAuthenticated, isAdmin, checkAndUpgradeToAdmin, logout } = useAuth()
+
+  // Check if already logged in as admin
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      if (isAuthenticated && isAdmin) {
+        // Already logged in as admin, redirect to dashboard
+        navigate('/admin/dashboard')
+        return
+      }
+    }
+
+    checkExistingSession()
+  }, [isAuthenticated, isAdmin, navigate])
 
   const handleChange = (e) => {
     setFormData({
@@ -31,42 +44,59 @@ const AdminLogin = () => {
     setError('')
     
     try {
-      // First, authenticate with Appwrite Auth
+      // Clear any existing sessions first to prevent conflicts
+      await logout()
+      
+      // Wait for logout to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Authenticate with Appwrite Auth
       const session = await authService.login(formData.email.trim().toLowerCase(), formData.password)
       
       // Get the current user
       const currentUser = await authService.getCurrentUser()
       
-      if (currentUser) {
-        // Check if the user is an admin
-        const isAdminUser = await adminService.isAdmin(currentUser.$id)
-        
-        if (isAdminUser) {
-          // Get admin details
-          const adminData = await adminService.getAdminByUserId(currentUser.$id)
-          
-          // Create user data for admin
-          const adminUserData = {
-            id: currentUser.$id,
-            name: currentUser.name,
-            email: currentUser.email,
-            isAdmin: true,
-            adminData: adminData
-          }
-          
-          // Log in as admin
-          await login(adminUserData, 'admin')
-          
-          // Navigate to admin dashboard
-          navigate('/admin/dashboard')
-        } else {
-          // User exists but is not an admin
-          await authService.logout()
-          setError('Access denied. This account does not have administrator privileges.')
-        }
+      if (!currentUser) {
+        throw new Error('Failed to get user information after login')
       }
+      
+      // Check if the user is an admin
+      const isAdminUser = await adminService.isAdmin(currentUser.$id)
+      
+      if (!isAdminUser) {
+        // User exists but is not an admin - logout and show error
+        await authService.logout()
+        setError('Access denied. This account does not have administrator privileges.')
+        return
+      }
+      
+      // Get admin details
+      const adminData = await adminService.getAdminByUserId(currentUser.$id)
+      
+      // Create user data for admin
+      const adminUserData = {
+        id: currentUser.$id,
+        name: currentUser.name,
+        email: currentUser.email,
+        isAdmin: true,
+        adminData: adminData || {}
+      }
+      
+      // Log in as admin
+      await login(adminUserData, 'admin')
+      
+      // Navigate to admin dashboard
+      navigate('/admin/dashboard')
+      
     } catch (error) {
       console.error('Admin login error:', error)
+      
+      // Ensure any partial session is cleaned up
+      try {
+        await authService.logout()
+      } catch (cleanupError) {
+        // Cleanup error is expected during failed login
+      }
       
       // Handle specific error messages
       if (error.code === 401 || error.type === 'user_invalid_credentials') {
@@ -75,10 +105,8 @@ const AdminLogin = () => {
         setError('No account found with this email address.')
       } else if (error.code === 429 || error.type === 'rate_limit_exceeded') {
         setError('Too many login attempts. Please try again in a few minutes.')
-      } else if (error.message.includes('email') || error.message.includes('not found')) {
-        setError('No account found with this email address. Please check your email.')
-      } else if (error.message.includes('password') || error.message.includes('credentials')) {
-        setError('Incorrect password. Please check your password and try again.')
+      } else if (error.message.includes('administrator privileges')) {
+        setError(error.message)
       } else if (error.code >= 500) {
         setError('Server error. Please try again later.')
       } else {

@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css'
 
 // Auth Components
-import { ProtectedRoute, PublicRoute, AdminRoute } from './components/ProtectedRoute'
+import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 import SessionIndicator from './components/SessionIndicator'
 
 // Layouts
@@ -12,6 +13,7 @@ import AdminLayout from './layouts/admin/AdminLayout'
 
 // Shared Pages
 import LandingPage from './pages/shared/LandingPage'
+import UnauthorizedPage from './pages/shared/UnauthorizedPage'
 
 // Auth Pages
 import UserLogin from './pages/auth/UserLogin'
@@ -58,7 +60,7 @@ function App() {
             </PublicRoute>
           } />
           
-          <Route path="/auth/admin-login" element={
+          <Route path="/admin/login" element={
             <PublicRoute>
               <AdminLogin />
             </PublicRoute>
@@ -103,6 +105,9 @@ function App() {
           {/* ============================================ */}
           {/* FALLBACK ROUTES */}
           {/* ============================================ */}
+          
+          {/* Unauthorized access page */}
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
           
           {/* Catch all undefined routes and redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -34,8 +34,8 @@ const UserProfile = () => {
     occupation: '',
     streetAddress: '',
     barangay: '',
-    city: '',
-    zipCode: '',
+    city: 'Castillejos, Zambales', // Default value
+    zipCode: '2208', // Default value
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelation: ''
@@ -44,15 +44,29 @@ const UserProfile = () => {
   // Check if user just registered and needs to complete profile
   const isNewUser = user?.resident && !user.resident.streetAddress && !user.resident.barangay
 
+  // Check if profile is complete and can generate ID
+  const isProfileComplete = () => {
+    const requiredFields = [
+      'firstName', 'lastName', 'birthDate', 'gender', 'civilStatus', 
+      'bloodType', 'phone', 'streetAddress', 'barangay', 'city', 'zipCode',
+      'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelation'
+    ]
+    
+    return requiredFields.every(field => {
+      const value = formData[field]
+      return value && value.toString().trim() !== ''
+    })
+  }
+
+  // Check if user has already completed profile (disable editing after completion)
+  const [hasCompletedProfile, setHasCompletedProfile] = useState(false)
+
   // Initialize form data from user context and user_info collection
   useEffect(() => {
     const loadUserData = async () => {
       if (user && user.resident) {
         try {
           setLoading(true)
-          
-          console.log('Loading user data for user:', user.id)
-          console.log('User resident data:', user.resident)
           
           const resident = user.resident
           
@@ -66,11 +80,8 @@ const UserProfile = () => {
             gender: '' // Will be loaded from user_info collection instead
           }
           
-          console.log('Basic data loaded:', basicData)
-          
           // Load additional info from user_info collection
           const userInfo = await userInfoService.getUserInfoByUserId(user.id)
-          console.log('User info from database:', userInfo)
           
           const additionalData = userInfo ? {
             suffix: userInfo.suffix || '',
@@ -81,8 +92,8 @@ const UserProfile = () => {
             occupation: userInfo.occupation || '',
             streetAddress: userInfo.address || '', // Match your collection field name
             barangay: userInfo.barangay || '',
-            city: userInfo.city || '',
-            zipCode: userInfo.zipCode || '',
+            city: userInfo.city || 'Castillejos, Zambales', // Default value if not set
+            zipCode: userInfo.zipCode || '2208', // Default value if not set
             emergencyContactName: userInfo.emergencyContactName || '',
             emergencyContactPhone: userInfo.emergencyContactPhone || '',
             emergencyContactRelation: userInfo.emergencyContactRelation || ''
@@ -95,21 +106,23 @@ const UserProfile = () => {
             occupation: '',
             streetAddress: '',
             barangay: '',
-            city: '',
-            zipCode: '',
+            city: 'Castillejos, Zambales', // Default value for new users
+            zipCode: '2208', // Default value for new users
             emergencyContactName: '',
             emergencyContactPhone: '',
             emergencyContactRelation: ''
           }
           
-          console.log('Additional data loaded:', additionalData)
-          
           setFormData({ ...basicData, ...additionalData })
           
           // If new user (no user_info record), automatically enable editing
           if (!userInfo) {
-            console.log('New user detected, enabling editing mode')
             setIsEditing(true)
+            setHasCompletedProfile(false)
+          } else {
+            // Check if this is the first time completing profile
+            const profileWasComplete = userInfo.address && userInfo.barangay && userInfo.gender && userInfo.civilStatus && userInfo.bloodType
+            setHasCompletedProfile(profileWasComplete)
           }
         } catch (error) {
           console.error('Error loading user data:', error)
@@ -185,8 +198,12 @@ const UserProfile = () => {
         }
         
         // Create or update user_info record
-        console.log('Saving user info data:', userInfoData)
         await userInfoService.upsertUserInfo(user.id, userInfoData)
+        
+        // Mark profile as completed (disable further editing)
+        if (isProfileComplete()) {
+          setHasCompletedProfile(true)
+        }
         
         setSaveSuccess(true)
         setIsEditing(false)
@@ -353,32 +370,41 @@ const UserProfile = () => {
                   <div className="space-y-6 animate-slide-up">
                     <div className="flex justify-between items-center">
                       <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-                      <button
-                        onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-                        disabled={loading}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
-                          isEditing
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {loading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Saving...</span>
-                          </>
-                        ) : isEditing ? (
-                          <>
-                            <FaSave className="w-4 h-4" />
-                            <span>Save Changes</span>
-                          </>
-                        ) : (
-                          <>
-                            <FaEdit className="w-4 h-4" />
-                            <span>Edit Profile</span>
-                          </>
-                        )}
-                      </button>
+                      
+                      {/* Show different buttons based on profile completion status */}
+                      {hasCompletedProfile && !isEditing ? (
+                        <div className="flex items-center space-x-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+                          <FaCheck className="w-4 h-4" />
+                          <span>Profile Completed</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+                          disabled={loading || (hasCompletedProfile && !isEditing)}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            isEditing
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {loading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>Saving...</span>
+                            </>
+                          ) : isEditing ? (
+                            <>
+                              <FaSave className="w-4 h-4" />
+                              <span>Save Changes</span>
+                            </>
+                          ) : (
+                            <>
+                              <FaEdit className="w-4 h-4" />
+                              <span>Edit Profile</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
 
                     {/* Success/Error Messages */}
@@ -480,6 +506,7 @@ const UserProfile = () => {
                               disabled={!isEditing}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
                             >
+                              <option value="">Select Gender</option>
                               <option value="Male">Male</option>
                               <option value="Female">Female</option>
                               <option value="Other">Other</option>
@@ -497,6 +524,7 @@ const UserProfile = () => {
                               disabled={!isEditing}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
                             >
+                              <option value="">Select Civil Status</option>
                               <option value="Single">Single</option>
                               <option value="Married">Married</option>
                               <option value="Divorced">Divorced</option>
@@ -512,6 +540,7 @@ const UserProfile = () => {
                               disabled={!isEditing}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
                             >
+                              <option value="">Select Blood Type</option>
                               <option value="A+">A+</option>
                               <option value="A-">A-</option>
                               <option value="B+">B+</option>
@@ -582,7 +611,7 @@ const UserProfile = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Town/Province</label>
                             <input
                               type="text"
                               name="city"
@@ -658,6 +687,7 @@ const UserProfile = () => {
                             disabled={!isEditing}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
                           >
+                            <option value="">Select Relationship</option>
                             <option value="Spouse">Spouse</option>
                             <option value="Parent">Parent</option>
                             <option value="Child">Child</option>

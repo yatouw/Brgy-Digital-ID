@@ -110,12 +110,10 @@ const ResidentManagement = () => {
   }
 
   const handleApprove = (residentId) => {
-    console.log('Approving resident:', residentId)
     // TODO: Implement approval logic
   }
 
   const handleReject = (residentId) => {
-    console.log('Rejecting resident:', residentId)
     // TODO: Implement rejection logic
   }
 

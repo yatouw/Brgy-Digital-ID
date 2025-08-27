@@ -1,9 +1,10 @@
 import { Client, Databases, Account, Storage, ID, Query } from "appwrite";
+import { config } from "../../config/env.js";
 
 const client = new Client();
 client
-  .setEndpoint("https://syd.cloud.appwrite.io/v1") // Sydney endpoint
-  .setProject("68ab6b7400264124f765"); // Your project ID
+  .setEndpoint(config.APPWRITE_ENDPOINT)
+  .setProject(config.APPWRITE_PROJECT_ID);
 
 // Export the client for additional configuration if needed
 export { client };
@@ -15,7 +16,7 @@ export const storage = new Storage(client);
 export { ID, Query };
 
 // Database and collection IDs
-export const DATABASE_ID = "68ab6c3a0032aabf5c59"; // Your database ID
+export const DATABASE_ID = config.APPWRITE_DATABASE_ID;
 
 // Collection IDs (you'll need to create these in Appwrite)
 export const COLLECTIONS = {
@@ -99,7 +100,6 @@ export const residentService = {
       );
       return response.documents.length > 0;
     } catch (error) {
-      console.error('Error checking email:', error);
       return false;
     }
   },
@@ -161,14 +161,40 @@ export const residentService = {
 
 // Database functions for user info
 export const userInfoService = {
+  // Helper function to check available attributes for user_info collection
+  async getUserInfoCollectionAttributes() {
+    try {
+      const collection = await databases.getCollection(DATABASE_ID, COLLECTIONS.USER_INFO);
+      return collection.attributes.map(attr => attr.key);
+    } catch (error) {
+      return [];
+    }
+  },
+
+  // Helper function to prepare user info data based on available attributes
+  async prepareUserInfoData(baseData) {
+    const availableAttributes = await this.getUserInfoCollectionAttributes();
+    const preparedData = { ...baseData };
+    
+    // Add timestamp fields only if they exist in the collection
+    const currentTime = new Date().toISOString();
+    
+    if (availableAttributes.includes('createdAt')) {
+      preparedData.createdAt = currentTime;
+    }
+    
+    return preparedData;
+  },
+
   // Create user info profile
   async createUserInfo(userInfoData) {
     try {
+      const preparedData = await this.prepareUserInfoData(userInfoData);
       return await databases.createDocument(
         DATABASE_ID,
         COLLECTIONS.USER_INFO,
         ID.unique(),
-        userInfoData
+        preparedData
       );
     } catch (error) {
       throw error;
@@ -192,11 +218,15 @@ export const userInfoService = {
   // Update user info
   async updateUserInfo(documentId, userInfoData) {
     try {
+    // Add updatedAt if the attribute exists
+    const availableAttributes = await this.getUserInfoCollectionAttributes();
+    const updateData = { ...userInfoData };
+      
       return await databases.updateDocument(
         DATABASE_ID,
         COLLECTIONS.USER_INFO,
         documentId,
-        userInfoData
+        updateData
       );
     } catch (error) {
       throw error;
@@ -226,6 +256,31 @@ export const userInfoService = {
 
 // Database functions for digital IDs
 export const digitalIdService = {
+  // Helper function to check available attributes
+  async getCollectionAttributes() {
+    try {
+      const collection = await databases.getCollection(DATABASE_ID, COLLECTIONS.DIGITAL_IDS);
+      return collection.attributes.map(attr => attr.key);
+    } catch (error) {
+      return [];
+    }
+  },
+
+  // Helper function to prepare data based on available attributes
+  async prepareDigitalIdData(baseData) {
+    const availableAttributes = await this.getCollectionAttributes();
+    const preparedData = { ...baseData };
+    
+    // Add timestamp fields only if they exist in the collection
+    const currentTime = new Date().toISOString();
+    
+    if (availableAttributes.includes('createdAt')) {
+      preparedData.createdAt = currentTime;
+    }
+    
+    return preparedData;
+  },
+
   // Create digital ID
   async createDigitalId(idData) {
     try {
@@ -236,6 +291,42 @@ export const digitalIdService = {
         idData
       );
     } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get digital ID by document ID
+  async getDigitalIdById(documentId) {
+    try {
+      const result = await databases.getDocument(
+        DATABASE_ID,
+        COLLECTIONS.DIGITAL_IDS,
+        documentId
+      );
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get digital ID by user ID
+  async getDigitalIdByUserId(userId) {
+    try {
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.DIGITAL_IDS,
+        [Query.equal('userId', userId)]
+      );
+      return response.documents[0] || null;
+    } catch (error) {
+      // Handle specific error cases
+      if (error.code === 404) {
+        // Collection doesn't exist
+        throw new Error('Collection with the requested ID could not be found. Please contact administrator.');
+      } else if (error.code === 401 || error.type === 'user_unauthorized') {
+        // Permission issue
+        throw error;
+      }
       throw error;
     }
   },
@@ -257,11 +348,261 @@ export const digitalIdService = {
   // Update digital ID
   async updateDigitalId(documentId, idData) {
     try {
-      return await databases.updateDocument(
+      if (!documentId) {
+        throw new Error('Document ID is required for update operation')
+      }
+      
+      // First verify the document exists and get current state
+      let currentDoc
+      try {
+        currentDoc = await databases.getDocument(DATABASE_ID, COLLECTIONS.DIGITAL_IDS, documentId)
+      } catch (fetchError) {
+        throw new Error(`Document ${documentId} does not exist`)
+      }
+      
+      // Check if the update would actually change anything
+      let hasChanges = false
+      for (const [key, value] of Object.entries(idData)) {
+        if (currentDoc[key] !== value) {
+          hasChanges = true
+          break
+        }
+      }
+      
+      if (!hasChanges) {
+        return currentDoc
+      }
+      
+      // Attempt the direct update
+      const result = await databases.updateDocument(DATABASE_ID, COLLECTIONS.DIGITAL_IDS, documentId, idData)
+      
+      // Verify the update was successful by checking key fields
+      const keyUpdatesApplied = Object.entries(idData).every(([key, value]) => result[key] === value)
+      if (!keyUpdatesApplied) {
+        console.warn('Warning: Some updates may not have been applied properly')
+      }
+      
+      return result
+      
+    } catch (error) {
+      // If it's a unique constraint error, try the safe update method
+      if (error.code === 409 || error.message?.includes('already exists')) {
+        try {
+          const { updateDigitalIdSafe } = await import('../../utils/appwriteHelper.js')
+          return await updateDigitalIdSafe(documentId, idData)
+        } catch (safeUpdateError) {
+          throw safeUpdateError
+        }
+      }
+      
+      throw error
+    }
+  },
+
+  // Generate ID number
+  generateIdNumber() {
+    const year = new Date().getFullYear();
+    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    return `BRG-${year}-${timestamp}`;
+  },
+
+  // Generate QR code data
+  generateQRCode(userData, idNumber) {
+    const birthYear = new Date(userData.birthDate).getFullYear();
+    const genderCode = userData.gender === 'Male' ? 'M' : userData.gender === 'Female' ? 'F' : 'O';
+    const age = new Date().getFullYear() - birthYear;
+    
+    return `EBRGY${idNumber.replace(/[^0-9]/g, '')}${userData.firstName.toUpperCase()}${userData.lastName.toUpperCase()}${birthYear}${age.toString().padStart(2, '0')}${genderCode}`;
+  },
+
+  // Request ID generation
+  async requestIdGeneration(userId, residentId, userData, userInfoData) {
+    try {
+      // Check if user already has a digital ID
+      const existingId = await this.getDigitalIdByUserId(userId);
+      if (existingId) {
+        throw new Error('Digital ID already exists for this user');
+      }
+
+      // Generate ID number
+      const idNumber = this.generateIdNumber();
+      
+      // Generate QR code
+      const qrCode = this.generateQRCode({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        birthDate: userData.birthDate,
+        gender: userInfoData.gender
+      }, idNumber);
+
+      // Create base digital ID data
+      const baseData = {
+        userId,
+        residentId,
+        idNumber,
+        status: 'pending_generation',
+        qrCode
+      };
+
+    // Prepare data with available attributes only
+    const digitalIdData = await this.prepareDigitalIdData(baseData);
+
+      return await this.createDigitalId(digitalIdData);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Request verification (user action after ID generation)
+  async requestVerification(digitalIdDocumentId) {
+    try {
+      const updateData = {
+        status: 'pending_verification'
+      };
+
+      // Add verificationRequestDate if the attribute exists
+      const availableAttributes = await this.getCollectionAttributes();
+      
+      if (availableAttributes.includes('verificationRequestDate')) {
+        updateData.verificationRequestDate = new Date().toISOString();
+      }
+
+      return await this.updateDigitalId(digitalIdDocumentId, updateData);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Approve verification (admin action)
+  async approveVerification(digitalIdDocumentId, adminUserId) {
+    try {
+      if (!digitalIdDocumentId) {
+        throw new Error('Digital ID document ID is required')
+      }
+      
+      if (!adminUserId) {
+        throw new Error('Admin user ID is required')
+      }
+      
+      // First, check if the document exists and get its current state
+      let existingDoc
+      try {
+        existingDoc = await databases.getDocument(DATABASE_ID, COLLECTIONS.DIGITAL_IDS, digitalIdDocumentId)
+        
+        if (existingDoc.status === 'active') {
+          return existingDoc // Return existing document if already approved
+        }
+        
+        if (existingDoc.status !== 'pending_verification') {
+          throw new Error(`Cannot approve document with status: ${existingDoc.status}. Only documents with 'pending_verification' status can be approved.`)
+        }
+      } catch (getError) {
+        throw new Error(`Document ${digitalIdDocumentId} not found or inaccessible: ${getError.message}`)
+      }
+      
+      const currentDate = new Date();
+      const expiryDate = new Date(currentDate);
+      expiryDate.setFullYear(currentDate.getFullYear() + 5); // 5 years validity
+
+      const updateData = {
+        status: 'active',
+        verifiedBy: adminUserId,
+        verifiedDate: currentDate.toISOString(),
+        issuedDate: currentDate.toISOString(),
+        expiryDate: expiryDate.toISOString()
+      };
+      
+      // Use the updated updateDigitalId method
+      const result = await this.updateDigitalId(digitalIdDocumentId, updateData);
+      
+      // Validate the update was successful
+      if (result.status !== 'active') {
+        throw new Error(`Approval failed: Expected status 'active', but got '${result.status}'`)
+      }
+      
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Reject verification (admin action)
+  async rejectVerification(digitalIdDocumentId, adminUserId, rejectionReason) {
+    try {
+      if (!digitalIdDocumentId) {
+        throw new Error('Digital ID document ID is required')
+      }
+      
+      if (!adminUserId) {
+        throw new Error('Admin user ID is required')
+      }
+      
+      if (!rejectionReason || !rejectionReason.trim()) {
+        throw new Error('Rejection reason is required')
+      }
+      
+      // First, check if the document exists and get its current state
+      let existingDoc
+      try {
+        existingDoc = await databases.getDocument(DATABASE_ID, COLLECTIONS.DIGITAL_IDS, digitalIdDocumentId)
+        
+        if (existingDoc.status === 'rejected') {
+          return existingDoc // Return existing document if already rejected
+        }
+        
+        if (existingDoc.status !== 'pending_verification') {
+          throw new Error(`Cannot reject document with status: ${existingDoc.status}. Only documents with 'pending_verification' status can be rejected.`)
+        }
+      } catch (getError) {
+        throw new Error(`Document ${digitalIdDocumentId} not found or inaccessible: ${getError.message}`)
+      }
+      
+      const updateData = {
+        status: 'rejected',
+        verifiedBy: adminUserId,
+        rejectionReason: rejectionReason.trim(),
+        rejectedDate: new Date().toISOString()
+      };
+      
+      // Use the updated updateDigitalId method
+      const result = await this.updateDigitalId(digitalIdDocumentId, updateData);
+      
+      // Validate the update was successful
+      if (result.status !== 'rejected') {
+        throw new Error(`Rejection failed: Expected status 'rejected', but got '${result.status}'`)
+      }
+      
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all pending verifications (for admin)
+  async getPendingVerifications() {
+    try {
+      return await databases.listDocuments(
         DATABASE_ID,
         COLLECTIONS.DIGITAL_IDS,
-        documentId,
-        idData
+        [Query.equal('status', 'pending_verification')]
+      );
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get all digital IDs with various filters (for admin)
+  async getAllDigitalIds(statusFilter = null) {
+    try {
+      const queries = [];
+      if (statusFilter && statusFilter !== 'all') {
+        queries.push(Query.equal('status', statusFilter));
+      }
+      
+      return await databases.listDocuments(
+        DATABASE_ID,
+        COLLECTIONS.DIGITAL_IDS,
+        queries
       );
     } catch (error) {
       throw error;
@@ -317,7 +658,7 @@ export const serviceRequestService = {
         DATABASE_ID,
         COLLECTIONS.SERVICES,
         documentId,
-        { status, adminNotes, updatedAt: new Date().toISOString() }
+        { status, adminNotes }
       );
     } catch (error) {
       throw error;
@@ -434,7 +775,7 @@ export const adminService = {
         DATABASE_ID,
         COLLECTIONS.ADMINS,
         documentId,
-        { isActive, updatedAt: new Date().toISOString() }
+        { isActive }
       );
     } catch (error) {
       throw error;

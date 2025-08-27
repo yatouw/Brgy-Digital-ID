@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }) => {
       
       // Check session manager first
       const storedUser = sessionManager.getSessionData('user')
+      const storedUserType = sessionManager.getSessionData('userType')
       
       if (storedUser) {
         // Only verify with Appwrite if we have local session data
@@ -86,12 +87,26 @@ export const AuthProvider = ({ children }) => {
           setUser(storedUser)
           setIsAuthenticated(true)
           
-          // Check if user is admin (with error handling)
-          try {
-            const adminStatus = await adminService.isAdmin(currentUser.$id)
-            setIsAdmin(adminStatus)
-          } catch (error) {
-            console.warn('Admin check failed, defaulting to false:', error)
+          // Check if user is admin based on stored type first
+          if (storedUserType === 'admin') {
+            // Verify admin status with database
+            try {
+              const adminStatus = await adminService.isAdmin(currentUser.$id)
+              setIsAdmin(adminStatus)
+              
+              // If stored as admin but not actually admin, clear session
+              if (!adminStatus) {
+                console.warn('User stored as admin but not in admin database, clearing session')
+                sessionManager.clearAllSessionData()
+                setUser(null)
+                setIsAuthenticated(false)
+                setIsAdmin(false)
+              }
+            } catch (error) {
+              setIsAdmin(false)
+            }
+          } else {
+            // Regular user
             setIsAdmin(false)
           }
         } else {
@@ -103,32 +118,50 @@ export const AuthProvider = ({ children }) => {
         }
       } else {
         // No local session, check if there's an active Appwrite session
-        // Only call getCurrentUser once if no local session exists
         try {
           const currentUser = await authService.getCurrentUser()
           
           if (currentUser) {
-            // User is logged in but not in session storage, fetch resident data
-            const resident = await residentService.getResidentByUserId(currentUser.$id)
+            // First check if it's an admin
+            const adminStatus = await adminService.isAdmin(currentUser.$id)
             
-            if (resident) {
-              const userData = {
+            if (adminStatus) {
+              // This is an admin user
+              const adminData = await adminService.getAdminByUserId(currentUser.$id)
+              const adminUserData = {
                 id: currentUser.$id,
                 name: currentUser.name,
                 email: currentUser.email,
-                resident: resident
+                isAdmin: true,
+                adminData: adminData || {}
               }
               
-              sessionManager.setSessionData('user', userData)
-              setUser(userData)
+              sessionManager.setSessionData('user', adminUserData)
+              sessionManager.setSessionData('userType', 'admin')
+              setUser(adminUserData)
               setIsAuthenticated(true)
+              setIsAdmin(true)
+            } else {
+              // Regular user - fetch resident data
+              const resident = await residentService.getResidentByUserId(currentUser.$id)
               
-              // Check if user is admin
-              const adminStatus = await adminService.isAdmin(currentUser.$id)
-              setIsAdmin(adminStatus)
+              if (resident) {
+                const userData = {
+                  id: currentUser.$id,
+                  name: currentUser.name,
+                  email: currentUser.email,
+                  resident: resident
+                }
+                
+                sessionManager.setSessionData('user', userData)
+                sessionManager.setSessionData('userType', 'user')
+                setUser(userData)
+                setIsAuthenticated(true)
+                setIsAdmin(false)
+              }
             }
           } else {
-            // No session at all, set to logged out state
+            // No session at all
             setUser(null)
             setIsAuthenticated(false)
             setIsAdmin(false)
@@ -169,10 +202,12 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Always try to logout from Appwrite first
       await authService.logout()
     } catch (error) {
-      console.error('Logout error:', error)
+      // If logout fails (e.g., no session), that's okay - continue with cleanup
     } finally {
+      // Always clean up local state regardless of Appwrite logout result
       setUser(null)
       setIsAuthenticated(false)
       setIsAdmin(false)
@@ -191,6 +226,13 @@ export const AuthProvider = ({ children }) => {
     return sessionManager.getSessionTimeRemaining()
   }
 
+  // Check if current user can be upgraded to admin
+  const checkAndUpgradeToAdmin = async () => {
+    // This function is deprecated - admin login should be handled through AdminLogin component
+    // Return false to indicate no upgrade happened
+    return false
+  }
+
   const value = {
     user,
     isLoading,
@@ -200,7 +242,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     checkAuthStatus,
     extendSession,
-    getSessionTimeRemaining
+    getSessionTimeRemaining,
+    checkAndUpgradeToAdmin
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
