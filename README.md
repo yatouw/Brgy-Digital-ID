@@ -1,12 +1,149 @@
-# React + Vite
+# Brgy-Digital-ID System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React-based digital identification system for Barangay Delpilar, streamlining resident identification and barangay services through a secure web platform.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### For Residents
+- **Digital ID Generation**: Secure digital identification cards with QR codes
+- **Profile Management**: Complete resident information management
+- **Service Requests**: Apply for barangay clearances, health certificates, and permits
+- **Document Storage**: Secure document upload and management
+- **Real-time Status**: Track application and verification status
 
-## Expanding the ESLint configuration
+### For Administrators  
+- **Resident Management**: View and manage all resident registrations
+- **ID Verification**: Approve/reject digital ID verification requests
+- **Service Processing**: Handle service requests and applications
+- **System Dashboard**: Overview of system statistics and activities
+- **Document Review**: Review uploaded documents and requirements
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19.1.0 with Vite
+- **Styling**: Tailwind CSS 4.1.7
+- **Backend**: Appwrite Cloud (BaaS)
+- **Routing**: React Router DOM 7.6.1
+- **Icons**: React Icons 5.5.0
+- **Authentication**: Appwrite Auth with session management
+
+## 📁 Project Structure
+
+```
+src/
+├── api/appwrite/           # Backend integration
+├── components/             # Reusable components  
+├── contexts/               # React contexts (Auth)
+├── layouts/                # Layout components
+├── pages/                  # Page components
+│   ├── admin/              # Admin pages
+│   ├── auth/               # Authentication pages
+│   ├── shared/             # Shared pages
+│   └── user/               # User pages
+├── utils/                  # Utility functions
+└── config/                 # Configuration files
+```
+
+## 🔐 Security Features
+
+- **Session Management**: Automatic logout after 30 minutes of inactivity
+- **Route Protection**: Role-based access control for users and admins
+- **Data Encryption**: Secure data transmission and storage
+- **Cross-tab Sync**: Session synchronization across browser tabs
+- **Activity Tracking**: Monitor user activity for security
+
+## 🚦 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Appwrite account and project setup
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yatouw/Brgy-Digital-ID.git
+cd Brgy-Digital-ID
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Configure environment variables
+```bash
+# Copy and update environment configuration
+cp src/config/env.js.example src/config/env.js
+```
+
+4. Start development server
+```bash
+npm run dev
+```
+
+5. Build for production
+```bash
+npm run build
+```
+
+## 📊 Database Schema
+
+### Collections (Appwrite)
+- **residents**: Basic resident information
+- **user_info**: Extended user profile data  
+- **digital_ids**: Digital ID records and verification status
+- **services**: Service requests and applications
+- **admins**: Administrator accounts
+
+## 🌐 Routes
+
+### Public Routes
+- `/` - Landing page
+- `/auth/login` - User login
+- `/auth/register` - User registration
+- `/admin/login` - Admin login
+
+### Protected User Routes
+- `/user/dashboard` - User dashboard
+- `/user/profile` - Profile management
+- `/user/digital-id` - Digital ID management
+- `/user/services` - Service requests
+
+### Admin Routes  
+- `/admin/dashboard` - Admin dashboard
+- `/admin/residents` - Resident management
+- `/admin/digital-ids` - ID verification
+- `/admin/services` - Service management
+
+## 🔧 Configuration
+
+Update the Appwrite configuration in `src/config/env.js`:
+
+```javascript
+export const config = {
+  APPWRITE_ENDPOINT: "your-appwrite-endpoint",
+  APPWRITE_PROJECT_ID: "your-project-id", 
+  APPWRITE_DATABASE_ID: "your-database-id"
+}
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Contact
+
+Project Link: [https://github.com/yatouw/Brgy-Digital-ID](https://github.com/yatouw/Brgy-Digital-ID)
+
+---
+**Barangay Delpilar Digital ID System** - Modernizing local government services through technology.

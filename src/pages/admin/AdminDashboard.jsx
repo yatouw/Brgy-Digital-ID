@@ -30,15 +30,6 @@ const AdminDashboard = () => {
       color: 'bg-purple-500',
       hoverColor: 'hover:bg-purple-600',
       count: '67'
-    },
-    { 
-      title: 'System Analytics', 
-      description: 'View system usage reports',
-      icon: FaChartBar,
-      link: '/admin/analytics',
-      color: 'bg-indigo-500',
-      hoverColor: 'hover:bg-indigo-600',
-      count: 'View'
     }
   ]
 
@@ -132,7 +123,7 @@ const AdminDashboard = () => {
         <div className="relative z-10">
           <h1 className="text-3xl font-bold mb-3">Welcome to Admin Dashboard</h1>
           <p className="text-emerald-100 text-lg">
-            Manage the Barangay Aningway Digital ID System efficiently and effectively.
+            Manage the Barangay Delpilar Digital ID System efficiently and effectively.
           </p>
           <div className="mt-4 flex items-center space-x-4 text-sm">
             <div className="flex items-center space-x-2">

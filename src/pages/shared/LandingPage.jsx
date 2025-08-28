@@ -2,51 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 const LandingPage = () => {
-  const [currentStat, setCurrentStat] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
-
-  const stats = [
-    { number: '5,000+', label: 'Registered Residents', color: 'emerald' },
-    { number: '15,000+', label: 'Services Processed', color: 'teal' },
-    { number: '99.8%', label: 'Satisfaction Rate', color: 'blue' },
-    { number: '24/7', label: 'System Availability', color: 'purple' }
-  ]
-
-  const testimonials = [
-    {
-      name: 'Maria Santos',
-      role: 'Local Business Owner',
-      text: 'Getting my business permits has never been easier! The digital system saved me hours of paperwork.',
-      rating: 5
-    },
-    {
-      name: 'Juan Dela Cruz',
-      role: 'Senior Citizen',
-      text: 'As a senior, I appreciate how simple and accessible the system is. No more long queues!',
-      rating: 5
-    },
-    {
-      name: 'Ana Rodriguez',
-      role: 'Working Mother',
-      text: 'I can now request certificates for my children\'s school enrollment from home. Amazing!',
-      rating: 5
-    }
-  ]
 
   useEffect(() => {
     setIsVisible(true)
-    const interval = setInterval(() => {
-      setCurrentStat((prev) => (prev + 1) % stats.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  useEffect(() => {
-    const testimonialInterval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
-    }, 4000)
-    return () => clearInterval(testimonialInterval)
   }, [])
 
   return (
@@ -96,15 +55,10 @@ const LandingPage = () => {
             >
               <span>Resident Login</span>
             </Link>
-            <Link 
-              to="/auth/admin-login"
-              className="group bg-gray-800/90 backdrop-blur-sm border-2 border-gray-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-700 hover:border-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-            >
-              <span>Admin Portal</span>
-            </Link>
+           
           </div>
 
-          {/* Dynamic Statistics */}
+          {/* Dynamic Statistics - Removed unused stats display */}
          
         </div>        
 

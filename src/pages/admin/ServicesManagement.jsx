@@ -131,14 +131,6 @@ const ServicesManagement = () => {
     )
   }
 
-  const handleApprove = (requestId) => {
-    // TODO: Implement approval logic
-  }
-
-  const handleReject = (requestId) => {
-    // TODO: Implement rejection logic
-  }
-
   const RequestDetailsModal = ({ request, onClose }) => {
     if (!request) return null
 
@@ -230,17 +222,11 @@ const ServicesManagement = () => {
             <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
               {request.status === 'pending' && (
                 <>
-                  <button 
-                    onClick={() => handleApprove(request.id)}
-                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
-                  >
+                  <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
                     <FaCheck className="w-4 h-4 inline mr-2" />
                     Approve
                   </button>
-                  <button 
-                    onClick={() => handleReject(request.id)}
-                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-                  >
+                  <button className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
                     <FaExclamationTriangle className="w-4 h-4 inline mr-2" />
                     Reject
                   </button>
@@ -456,16 +442,10 @@ const ServicesManagement = () => {
                       </button>
                       {request.status === 'pending' && (
                         <>
-                          <button 
-                            onClick={() => handleApprove(request.id)}
-                            className="text-green-600 hover:text-green-900 p-1"
-                          >
+                          <button className="text-green-600 hover:text-green-900 p-1">
                             <FaCheck className="w-4 h-4" />
                           </button>
-                          <button 
-                            onClick={() => handleReject(request.id)}
-                            className="text-red-600 hover:text-red-900 p-1"
-                          >
+                          <button className="text-red-600 hover:text-red-900 p-1">
                             <FaTrash className="w-4 h-4" />
                           </button>
                         </>

@@ -246,7 +246,7 @@ const AdminLayout = ({ children }) => {
               
               <div className="animate-fade-in">
                 <h1 className="text-lg font-semibold text-gray-900">
-                  Barangay Aningway Admin Panel
+                  Barangay Delpilar Admin Panel
                 </h1>
                 <p className="text-sm text-gray-500">
                   Manage residents and digital ID system

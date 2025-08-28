@@ -109,14 +109,6 @@ const ResidentManagement = () => {
     )
   }
 
-  const handleApprove = (residentId) => {
-    // TODO: Implement approval logic
-  }
-
-  const handleReject = (residentId) => {
-    // TODO: Implement rejection logic
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}

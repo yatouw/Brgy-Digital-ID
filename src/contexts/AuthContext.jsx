@@ -226,13 +226,6 @@ export const AuthProvider = ({ children }) => {
     return sessionManager.getSessionTimeRemaining()
   }
 
-  // Check if current user can be upgraded to admin
-  const checkAndUpgradeToAdmin = async () => {
-    // This function is deprecated - admin login should be handled through AdminLogin component
-    // Return false to indicate no upgrade happened
-    return false
-  }
-
   const value = {
     user,
     isLoading,
@@ -242,8 +235,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     checkAuthStatus,
     extendSession,
-    getSessionTimeRemaining,
-    checkAndUpgradeToAdmin
+    getSessionTimeRemaining
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

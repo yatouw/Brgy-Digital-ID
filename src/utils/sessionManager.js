@@ -28,7 +28,7 @@ class SessionManager {
     this.setupStorageEventListener()
   }
 
-  // Use sessionStorage instead of localStorage for automatic cleanup
+  // Use sessionStorage for automatic cleanup
   setSessionData(key, data) {
     try {
       const sessionData = {
@@ -37,7 +37,6 @@ class SessionManager {
         expiresAt: Date.now() + this.sessionTimeout
       }
       sessionStorage.setItem(key, JSON.stringify(sessionData))
-      localStorage.setItem(key, JSON.stringify(data)) // Keep for cross-tab sync
       this.resetActivityTimer()
     } catch (error) {
       console.error('Error setting session data:', error)
@@ -49,8 +48,7 @@ class SessionManager {
     try {
       const sessionData = sessionStorage.getItem(key)
       if (!sessionData) {
-        // Check localStorage as fallback but validate session
-        return this.validateAndMigrateFromLocalStorage(key)
+        return null
       }
 
       const parsed = JSON.parse(sessionData)
@@ -72,25 +70,10 @@ class SessionManager {
     }
   }
 
-  // Validate and migrate from localStorage if session is valid
-  validateAndMigrateFromLocalStorage(key) {
-    try {
-      const localData = localStorage.getItem(key)
-      if (!localData) return null
-
-      // For now, just return the data - we'll validate session in auth context
-      return JSON.parse(localData)
-    } catch (error) {
-      console.error('Error validating localStorage session:', error)
-      return null
-    }
-  }
-
   // Clear specific session data
   clearSessionData(key) {
     try {
       sessionStorage.removeItem(key)
-      localStorage.removeItem(key)
     } catch (error) {
       console.error('Error clearing session data:', error)
     }
@@ -103,7 +86,6 @@ class SessionManager {
       const authKeys = ['user', 'userType', 'adminData']
       authKeys.forEach(key => {
         sessionStorage.removeItem(key)
-        localStorage.removeItem(key)
       })
       
       // Clear any temporary session data
@@ -237,9 +219,6 @@ class SessionManager {
     // Check local session data first - if no session, don't validate
     const sessionData = sessionStorage.getItem('user')
     if (!sessionData) {
-      if (SESSION_CONFIG.DEBUG_MODE) {
-        console.log('No session data found - skipping validation')
-      }
       return
     }
 
@@ -247,9 +226,6 @@ class SessionManager {
     
     // Check if we're already validating or in cooldown period
     if (this.isValidating || (now - this.lastValidationTime) < this.validationCooldown) {
-      if (SESSION_CONFIG.DEBUG_MODE) {
-        console.log('Session validation throttled - skipping API call')
-      }
       return
     }
 
@@ -259,9 +235,6 @@ class SessionManager {
         const parsed = JSON.parse(sessionData)
         // If session is expired locally, don't bother with API call
         if (Date.now() > parsed.expiresAt) {
-          if (SESSION_CONFIG.DEBUG_MODE) {
-            console.log('Local session expired - cleaning up')
-          }
           this.handleSessionEnd()
           return
         }
@@ -284,10 +257,6 @@ class SessionManager {
     try {
       this.isValidating = true
       this.lastValidationTime = Date.now()
-      
-      if (SESSION_CONFIG.LOG_API_CALLS) {
-        console.log('Making API call to validate session at:', new Date().toISOString())
-      }
       
       // Import authService dynamically to avoid circular dependency
       const { authService } = await import('../api/appwrite/appwrite')
