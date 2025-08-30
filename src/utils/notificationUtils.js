@@ -252,7 +252,7 @@ export const validateNotification = (notification) => {
   return requiredFields.every(field => notification.hasOwnProperty(field) && notification[field] !== null)
 }
 
-// Clear all notification data for a user (for debugging/reset purposes)
+// Clear all notification data for a user
 export const clearAllUserNotificationData = (userId) => {
   if (!userId) return
   
@@ -272,33 +272,4 @@ export const clearAllUserNotificationData = (userId) => {
     console.error('Error clearing user notification data:', error)
     return false
   }
-}
-
-// Debug function to show all notification data for a user
-export const debugUserNotificationData = (userId) => {
-  if (!userId) {
-    console.log('No user ID provided')
-    return
-  }
-  
-  try {
-    const readKey = `read_notifications_${userId}`
-    const clearedKey = `cleared_notifications_${userId}`
-    const cleanupKey = `notification_last_cleanup_${userId}`
-    
-    console.log('=== Notification Debug Data ===')
-    console.log('User ID:', userId)
-    console.log('Read notifications:', localStorage.getItem(readKey))
-    console.log('Cleared notifications:', localStorage.getItem(clearedKey))
-    console.log('Last cleanup:', localStorage.getItem(cleanupKey))
-    console.log('===============================')
-  } catch (error) {
-    console.error('Error debugging notification data:', error)
-  }
-}
-
-// Expose debug functions to window for console debugging
-if (typeof window !== 'undefined') {
-  window.debugNotifications = debugUserNotificationData
-  window.clearNotifications = clearAllUserNotificationData
 }

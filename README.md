@@ -74,8 +74,11 @@ npm install
 
 3. Configure environment variables
 ```bash
-# Copy and update environment configuration
-cp src/config/env.js.example src/config/env.js
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your Appwrite configuration
+# Get these values from your Appwrite console at https://cloud.appwrite.io/
 ```
 
 4. Start development server
@@ -119,15 +122,40 @@ npm run build
 
 ## 🔧 Configuration
 
-Update the Appwrite configuration in `src/config/env.js`:
+### Environment Variables
 
-```javascript
-export const config = {
-  APPWRITE_ENDPOINT: "your-appwrite-endpoint",
-  APPWRITE_PROJECT_ID: "your-project-id", 
-  APPWRITE_DATABASE_ID: "your-database-id"
-}
+Create a `.env` file in the root directory and configure your Appwrite settings:
+
+```bash
+# Copy the example file
+cp .env.example .env
 ```
+
+Add your Appwrite configuration to `.env`:
+
+```bash
+VITE_APPWRITE_ENDPOINT=https://your-appwrite-endpoint/v1
+VITE_APPWRITE_PROJECT_ID=your-project-id
+VITE_APPWRITE_DATABASE_ID=your-database-id
+```
+
+### Appwrite Setup
+
+1. Create an account at [Appwrite Cloud](https://cloud.appwrite.io/)
+2. Create a new project
+3. Set up the following collections in your database:
+   - `residents` - Basic resident information
+   - `user_info` - Extended user profile data
+   - `digital_ids` - Digital ID records and verification status
+   - `services` - Service requests and applications
+   - `admins` - Administrator accounts
+
+4. Configure storage buckets:
+   - `profile_photos` - User profile images
+   - `documents` - Document uploads
+   - `id_photos` - ID-related photos
+
+5. Update your `.env` file with the project details from your Appwrite console
 
 ## 📝 License
 

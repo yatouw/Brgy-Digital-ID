@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "setup": "cp .env.example .env && echo Environment file created! Please edit .env with your Appwrite configuration."
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.0.0",

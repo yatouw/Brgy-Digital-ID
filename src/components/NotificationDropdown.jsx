@@ -265,22 +265,6 @@ const NotificationDropdown = () => {
               </Link>
             </div>
           )}
-
-          {/* Debug Panel - Only show in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="px-4 py-2 bg-red-50 border-t border-red-200">
-              <button
-                onClick={() => {
-                  if (window.confirm('This will clear ALL notification data for debugging. Continue?')) {
-                    forceCleanup()
-                  }
-                }}
-                className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
-              >
-                [DEBUG] Force Clear All
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ const NotificationContext = createContext({
 })
 
 // NotificationProvider component
-export const NotificationProvider = ({ children }) => {
+export function NotificationProvider({ children }) {
   const { user, isAuthenticated, isAdmin } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -490,8 +490,7 @@ export const NotificationProvider = ({ children }) => {
     clearNotification,
     markAllAsRead,
     clearAllNotifications,
-    refreshNotifications,
-    forceCleanup // For debugging purposes
+    refreshNotifications
   }
 
   return (
@@ -502,7 +501,7 @@ export const NotificationProvider = ({ children }) => {
 }
 
 // Custom hook to use notification context
-export const useNotifications = () => {
+export function useNotifications() {
   const context = useContext(NotificationContext)
   if (context === undefined) {
     // If used outside of provider, return a fallback object instead of throwing
@@ -514,8 +513,7 @@ export const useNotifications = () => {
       clearNotification: () => {},
       markAllAsRead: () => {},
       clearAllNotifications: () => {},
-      refreshNotifications: () => {},
-      forceCleanup: () => {}
+      refreshNotifications: () => {}
     }
   }
   return context

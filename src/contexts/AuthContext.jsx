@@ -16,7 +16,7 @@ const AuthContext = createContext({
 })
 
 // AuthProvider component
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -250,7 +250,7 @@ export const AuthProvider = ({ children }) => {
 }
 
 // Custom hook to use auth context
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
