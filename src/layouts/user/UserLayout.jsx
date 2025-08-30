@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FaHome, FaIdCard, FaClipboardList, FaUser, FaBell, FaSignOutAlt } from 'react-icons/fa'
+import { FaHome, FaIdCard, FaClipboardList, FaUser, FaSignOutAlt } from 'react-icons/fa'
 import { useAuth } from '../../contexts/AuthContext'
+import NotificationDropdown from '../../components/NotificationDropdown'
+import ErrorBoundary from '../../components/ErrorBoundary'
 
 const UserLayout = ({ children }) => {
   const location = useLocation()
@@ -159,20 +161,16 @@ const UserLayout = ({ children }) => {
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <button className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300 relative transform hover:scale-110 active:scale-95">
-                  <FaBell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-                </button>
-              </div>
+              <NotificationDropdown />
             </div>
           </div>
         </header>        
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </main>
       </div>
 

@@ -95,8 +95,74 @@ class SessionManager {
           sessionStorage.removeItem(key)
         }
       }
+
+      // Clear notification data for current user from localStorage
+      this.clearUserNotificationData()
     } catch (error) {
       console.error('Error clearing all session data:', error)
+    }
+  }
+
+  // Clear notification data for current user (only when explicitly logging out)
+  clearUserNotificationData() {
+    try {
+      // Get current user from session before clearing
+      const userData = this.getSessionData('user')
+      if (userData?.id) {
+        const userId = userData.id
+        
+        // Only clear notification data if this is an explicit logout, not a session timeout
+        // Check if this is a session timeout vs explicit logout
+        const isExplicitLogout = sessionStorage.getItem('explicit_logout') === 'true'
+        
+        if (isExplicitLogout) {
+          const notificationKeys = [
+            `read_notifications_${userId}`,
+            `cleared_notifications_${userId}`,
+            `notification_last_cleanup_${userId}`
+          ]
+          
+          notificationKeys.forEach(key => {
+            localStorage.removeItem(key)
+          })
+        } else {
+          // Preserving notification data for session timeout/page refresh
+        }
+      }
+
+      // Clean up very old orphaned notification keys (more than 30 days)
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('read_notifications_') || 
+                   key.startsWith('cleared_notifications_') || 
+                   key.startsWith('notification_last_cleanup_'))) {
+          try {
+            const item = localStorage.getItem(key)
+            if (item) {
+              const parsed = JSON.parse(item)
+              const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000)
+              // Only remove if it's very old (more than 30 days) and has timestamp
+              if (parsed.timestamp && parsed.timestamp < thirtyDaysAgo) {
+                localStorage.removeItem(key)
+              }
+            }
+          } catch (error) {
+            // If parsing fails, check if it's a very old array format
+            try {
+              const arrayParsed = JSON.parse(item)
+              if (Array.isArray(arrayParsed)) {
+                // Old format, remove it
+                localStorage.removeItem(key)
+              }
+            } catch (innerError) {
+              // If still can't parse, remove corrupted item
+              localStorage.removeItem(key)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error clearing user notification data:', error)
     }
   }
 

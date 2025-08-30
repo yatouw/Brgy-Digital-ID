@@ -202,6 +202,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Mark this as an explicit logout
+      sessionStorage.setItem('explicit_logout', 'true')
+      
       // Always try to logout from Appwrite first
       await authService.logout()
     } catch (error) {
@@ -212,6 +215,11 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false)
       setIsAdmin(false)
       sessionManager.clearAllSessionData()
+      
+      // Clear the explicit logout flag after cleanup
+      setTimeout(() => {
+        sessionStorage.removeItem('explicit_logout')
+      }, 100)
     }
   }
 

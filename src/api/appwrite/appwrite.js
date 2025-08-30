@@ -560,8 +560,7 @@ export const digitalIdService = {
       const updateData = {
         status: 'rejected',
         verifiedBy: adminUserId,
-        rejectionReason: rejectionReason.trim(),
-        rejectedDate: new Date().toISOString()
+        rejectionReason: rejectionReason.trim()
       };
       
       // Use the updated updateDigitalId method

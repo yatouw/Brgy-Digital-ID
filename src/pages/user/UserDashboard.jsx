@@ -1,7 +1,12 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import { useNotifications } from '../../contexts/NotificationContext'
 
 const UserDashboard = () => {
+  const { user } = useAuth()
+  const { notifications, unreadCount, forceCleanup } = useNotifications()
+  
   const quickActions = [
     { 
       title: 'View Digital ID', 
@@ -189,6 +194,48 @@ const UserDashboard = () => {
             View all announcements →
           </button>
         </div>
+
+        {/* Debug Panel - Development Only */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h2 className="text-lg font-semibold text-red-900 mb-4">🐛 Notification Debug Panel</h2>
+            <div className="space-y-2 text-sm">
+              <p><strong>User ID:</strong> {user?.id || 'N/A'}</p>
+              <p><strong>Notifications Count:</strong> {notifications.length}</p>
+              <p><strong>Unread Count:</strong> {unreadCount}</p>
+              <p><strong>Notifications:</strong></p>
+              <div className="bg-white p-2 rounded border max-h-32 overflow-y-auto">
+                <pre className="text-xs">{JSON.stringify(notifications.map(n => ({
+                  id: n.id,
+                  type: n.type,
+                  read: n.read
+                })), null, 2)}</pre>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    if (user?.id && window.debugNotifications) {
+                      window.debugNotifications(user.id)
+                    }
+                  }}
+                  className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                >
+                  Debug LocalStorage
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm('Clear ALL notification data?')) {
+                      forceCleanup()
+                    }
+                  }}
+                  className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                >
+                  Force Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

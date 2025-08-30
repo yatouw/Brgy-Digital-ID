@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { FaDownload, FaShare, FaPrint, FaQrcode, FaShieldAlt, FaCalendar, FaMapMarkerAlt, FaPhone, FaEnvelope, FaExclamationTriangle, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa'
+import { FaDownload, FaShare, FaPrint, FaQrcode, FaShieldAlt, FaCalendar, FaMapMarkerAlt, FaPhone, FaEnvelope, FaExclamationTriangle, FaCheckCircle, FaClock, FaTimesCircle, FaUser } from 'react-icons/fa'
 import { useAuth } from '../../contexts/AuthContext'
+import { useNotifications } from '../../contexts/NotificationContext'
 import { digitalIdService, userInfoService } from '../../api/appwrite/appwrite'
 
 const DigitalID = () => {
   const { user } = useAuth()
+  const notificationContext = useNotifications()
   const [isFlipped, setIsFlipped] = useState(false)
   const [digitalId, setDigitalId] = useState(null)
   const [userInfo, setUserInfo] = useState(null)
@@ -14,34 +16,52 @@ const DigitalID = () => {
   const [generating, setGenerating] = useState(false)
   const [requesting, setRequesting] = useState(false)
 
+  // Safe refresh function that checks if context is available
+  const safeRefreshNotifications = () => {
+    try {
+      if (notificationContext && typeof notificationContext.refreshNotifications === 'function') {
+        notificationContext.refreshNotifications()
+      }
+    } catch (error) {
+      console.warn('Error refreshing notifications:', error)
+    }
+  }
+
   // Load digital ID and user info
   useEffect(() => {
     const loadData = async () => {
-      if (user && user.resident) {
-        try {
-          setLoading(true)
-          setError('')
-          
-          // Load user info first
-          const info = await userInfoService.getUserInfoByUserId(user.id)
-          setUserInfo(info)
-          
-          // Load digital ID
-          const id = await digitalIdService.getDigitalIdByUserId(user.id)
-          setDigitalId(id)
-          
-        } catch (error) {
-          console.error('Error loading digital ID data:', error)
-          if (error.code === 401 || error.type === 'user_unauthorized') {
-            setError('Database access issue. Please check that the digital_ids collection exists and has proper permissions.')
-          } else if (error.message.includes('Collection with the requested ID could not be found')) {
-            setError('The digital_ids collection does not exist. Please contact administrator to set up the database.')
-          } else {
-            setError('Failed to load digital ID information. Please try refreshing the page.')
-          }
-        } finally {
-          setLoading(false)
+      if (!user?.id || !user?.resident) {
+        setLoading(false)
+        setError('User session not found. Please refresh the page or log in again.')
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError('')
+        
+        // Load user info first
+        const info = await userInfoService.getUserInfoByUserId(user.id)
+        setUserInfo(info)
+        
+        // Load digital ID
+        const id = await digitalIdService.getDigitalIdByUserId(user.id)
+        setDigitalId(id)
+        
+        // Refresh notifications after loading digital ID data
+        safeRefreshNotifications()
+        
+      } catch (error) {
+        console.error('Error loading digital ID data:', error)
+        if (error.code === 401 || error.type === 'user_unauthorized') {
+          setError('Database access issue. Please check that the digital_ids collection exists and has proper permissions.')
+        } else if (error.message?.includes('Collection with the requested ID could not be found')) {
+          setError('The digital_ids collection does not exist. Please contact administrator to set up the database.')
+        } else {
+          setError('Failed to load digital ID information. Please try refreshing the page.')
         }
+      } finally {
+        setLoading(false)
       }
     }
     
@@ -93,6 +113,9 @@ const DigitalID = () => {
       
       setDigitalId(newId)
       
+      // Refresh notifications after generating ID
+      safeRefreshNotifications()
+      
     } catch (error) {
       console.error('Error generating ID:', error)
       if (error.message.includes('already exists')) {
@@ -114,6 +137,9 @@ const DigitalID = () => {
       const updatedId = await digitalIdService.requestVerification(digitalId.$id)
       setDigitalId(updatedId)
       
+      // Refresh notifications after requesting verification
+      safeRefreshNotifications()
+      
     } catch (error) {
       console.error('Error requesting verification:', error)
       setError('Failed to request verification. Please try again.')
@@ -124,8 +150,8 @@ const DigitalID = () => {
 
   // Format address
   const getFullAddress = () => {
-    if (!userInfo) return ''
-    return `${userInfo.address}, ${userInfo.barangay}, ${userInfo.city}, ${userInfo.zipCode}`
+    if (!userInfo) return 'Address not available'
+    return `${userInfo.address || ''}, ${userInfo.barangay || ''}, ${userInfo.city || ''}, ${userInfo.zipCode || ''}`
   }
 
   // Get status badge
@@ -184,6 +210,50 @@ const DigitalID = () => {
             <FaExclamationTriangle className="w-5 h-5 text-red-500" />
             <div className="flex-1">
               <p className="text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Alert - Show prominently if ID is rejected */}
+      {digitalId?.status === 'rejected' && digitalId.rejectionReason && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 shadow-lg">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <FaTimesCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-red-900">ID Verification Rejected</h3>
+                <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
+                  Action Required
+                </span>
+              </div>
+              <p className="text-red-700 mb-4">
+                <span className="font-medium">Admin Remark:</span> {digitalId.rejectionReason}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/user/profile"
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105"
+                >
+                  <FaUser className="w-4 h-4 mr-2" />
+                  Update Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    setError('')
+                    // You can add a function to re-request verification here if needed
+                  }}
+                  className="inline-flex items-center px-4 py-2 bg-white text-red-600 border-2 border-red-200 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105"
+                >
+                  <FaExclamationTriangle className="w-4 h-4 mr-2" />
+                  Contact Support
+                </button>
+              </div>
+              <div className="mt-3 text-sm text-red-600">
+                <p>Please review the admin's remarks, update your profile if necessary, and contact support if you need assistance.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -327,25 +397,25 @@ const DigitalID = () => {
                               {/* ID Number */}
                               <div>
                                 <div className="text-xs text-gray-500 font-medium">ID Number</div>
-                                <div className="text-sm font-bold text-gray-900 font-mono">{digitalId.idNumber}</div>
+                                <div className="text-sm font-bold text-gray-900 font-mono">{digitalId?.idNumber || 'N/A'}</div>
                               </div>
 
                               {/* Last Name */}
                               <div>
                                 <div className="text-xs text-gray-500 font-medium">Last Name</div>
-                                <div className="text-sm font-bold text-gray-900 uppercase">{user.resident.lastName}</div>
+                                <div className="text-sm font-bold text-gray-900 uppercase">{user?.resident?.lastName || 'N/A'}</div>
                               </div>
 
                               {/* First Name */}
                               <div>
                                 <div className="text-xs text-gray-500 font-medium">First Name</div>
-                                <div className="text-sm font-bold text-gray-900 uppercase">{user.resident.firstName}</div>
+                                <div className="text-sm font-bold text-gray-900 uppercase">{user?.resident?.firstName || 'N/A'}</div>
                               </div>
 
                               {/* Middle Name */}
                               <div>
                                 <div className="text-xs text-gray-500 font-medium">Middle Name</div>
-                                <div className="text-sm font-bold text-gray-900 uppercase">{user.resident.middleName || 'N/A'}</div>
+                                <div className="text-sm font-bold text-gray-900 uppercase">{user?.resident?.middleName || 'N/A'}</div>
                               </div>
                             </div>
                           </div>
@@ -354,7 +424,7 @@ const DigitalID = () => {
                           <div className="mt-4 space-y-2">
                             <div>
                               <div className="text-xs text-gray-500 font-medium">Date of Birth</div>
-                              <div className="text-sm font-bold text-gray-900">{user.resident.birthDate}</div>
+                              <div className="text-sm font-bold text-gray-900">{user?.resident?.birthDate || 'N/A'}</div>
                             </div>
 
                             <div>
@@ -388,8 +458,8 @@ const DigitalID = () => {
                           </div>
                           <div>
                             <span className="text-gray-600">Status: </span>
-                            <span className={`font-semibold ${digitalId.status === 'active' ? 'text-emerald-700' : 'text-yellow-600'}`}>
-                              {digitalId.status.replace('_', ' ').toUpperCase()}
+                            <span className={`font-semibold ${digitalId?.status === 'active' ? 'text-emerald-700' : 'text-yellow-600'}`}>
+                              {digitalId?.status?.replace('_', ' ')?.toUpperCase() || 'PENDING'}
                             </span>
                           </div>
                         </div>
@@ -412,7 +482,7 @@ const DigitalID = () => {
                 <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden relative border border-gray-200">
                     {/* Header */}
-                    <div className="bg-white-600 px-4 py-3 text-black">
+                    <div className="bg-gray-600 px-4 py-3 text-white">
                       <div className="text-center">
                         <div className="text-sm font-bold">ADDITIONAL INFORMATION</div>
                         <div className="text-xs opacity-90">Barangay Delpilar Digital ID</div>
@@ -447,11 +517,11 @@ const DigitalID = () => {
                             <div className="space-y-1">
                               <div className="flex items-center text-xs">
                                 <FaPhone className="w-3 h-3 mr-2 text-emerald-600" />
-                                <span className="text-sm font-bold text-gray-900">{user.resident.phone}</span>
+                                <span className="text-sm font-bold text-gray-900">{user?.resident?.phone || 'N/A'}</span>
                               </div>
                               <div className="flex items-center text-xs">
                                 <FaEnvelope className="w-3 h-3 mr-2 text-emerald-600" />
-                                <span className="text-sm font-bold text-gray-900">{user.resident.email}</span>
+                                <span className="text-sm font-bold text-gray-900">{user?.resident?.email || 'N/A'}</span>
                               </div>
                             </div>
                           </div>
@@ -468,11 +538,11 @@ const DigitalID = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-white-600 px-4 py-2">
-                      <div className="flex justify-between items-center text-xs text-black">
+                    <div className="absolute bottom-0 left-0 right-0 bg-gray-600 px-4 py-2">
+                      <div className="flex justify-between items-center text-xs text-white">
                         <div>
                           <span className="font-medium">Generated: </span>
-                          <span className="font-bold">{digitalId.createdAt ? new Date(digitalId.createdAt).toLocaleDateString() : 'N/A'}</span>
+                          <span className="font-bold">{digitalId?.createdAt ? new Date(digitalId.createdAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                         <div className="text-right">
                           <div className="text-xs opacity-90">← Click to view front</div>
@@ -503,8 +573,8 @@ const DigitalID = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">ID Status</h3>
-                  <p className={`font-medium ${digitalId.status === 'active' ? 'text-emerald-600' : 'text-yellow-600'}`}>
-                    {digitalId.status.replace('_', ' ').toUpperCase()}
+                  <p className={`font-medium ${digitalId?.status === 'active' ? 'text-emerald-600' : 'text-yellow-600'}`}>
+                    {digitalId?.status?.replace('_', ' ')?.toUpperCase() || 'PENDING'}
                   </p>
                 </div>
               </div>
@@ -517,12 +587,14 @@ const DigitalID = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {digitalId.expiryDate ? 'Valid Until' : 'Generated'}
+                    {digitalId?.expiryDate ? 'Valid Until' : 'Generated'}
                   </h3>
                   <p className="text-blue-600 font-medium">
-                    {digitalId.expiryDate 
+                    {digitalId?.expiryDate 
                       ? new Date(digitalId.expiryDate).toLocaleDateString()
-                      : new Date(digitalId.createdAt).toLocaleDateString()
+                      : digitalId?.createdAt 
+                        ? new Date(digitalId.createdAt).toLocaleDateString()
+                        : 'N/A'
                     }
                   </p>
                 </div>
@@ -537,7 +609,7 @@ const DigitalID = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900">Digital Verification</h3>
                   <p className="text-purple-600 font-medium">
-                    {digitalId.qrCode ? 'QR Code Available' : 'Pending Generation'}
+                    {digitalId?.qrCode ? 'QR Code Available' : 'Pending Generation'}
                   </p>
                 </div>
               </div>

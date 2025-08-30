@@ -24,6 +24,8 @@ const UserRegister = () => {
   const [success, setSuccess] = useState('')
   const [emailChecking, setEmailChecking] = useState(false)
   const [emailExists, setEmailExists] = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
 
@@ -253,6 +255,156 @@ const UserRegister = () => {
     if (passwordStrength <= 4) return 'Strong'
     return 'Very Strong'
   }
+
+  // Terms and Conditions Modal Component
+  const TermsModal = () => (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowTermsModal(false)}></div>
+        
+        <div className="relative inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white shadow-xl rounded-2xl sm:my-8 sm:align-middle sm:p-6">
+          <div className="absolute top-0 right-0 pt-4 pr-4">
+            <button
+              onClick={() => setShowTermsModal(false)}
+              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="sm:flex sm:items-start">
+            <div className="w-full mt-3 text-center sm:mt-0 sm:text-left">
+              <h3 className="text-2xl font-bold leading-6 text-gray-900 mb-4">
+                Terms and Conditions
+              </h3>
+              <div className="mt-2 max-h-96 overflow-y-auto pr-4">
+                <div className="text-sm text-gray-700 space-y-4">
+                  <h4 className="font-semibold text-lg text-emerald-600">1. Acceptance of Terms</h4>
+                  <p>By registering for the Barangay Delpilar Digital ID System, you agree to comply with and be bound by these terms and conditions.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">2. Use of Service</h4>
+                  <p>The Digital ID System is provided for legitimate identification and barangay service purposes only. You agree not to misuse the system or provide false information.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">3. Account Responsibility</h4>
+                  <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">4. Data Accuracy</h4>
+                  <p>You must provide accurate, current, and complete information during registration and keep your information updated.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">5. System Availability</h4>
+                  <p>While we strive for continuous service availability, we do not guarantee uninterrupted access to the system.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">6. Prohibited Activities</h4>
+                  <p>You may not use the system to engage in any illegal activities, impersonate others, or attempt to gain unauthorized access to other accounts.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">7. Termination</h4>
+                  <p>We reserve the right to suspend or terminate accounts that violate these terms or pose a security risk.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">8. Changes to Terms</h4>
+                  <p>These terms may be updated from time to time. Continued use of the service constitutes acceptance of any changes.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">9. Contact Information</h4>
+                  <p>For questions about these terms, please contact the Barangay Delpilar office or email support@ebrgy.gov.ph</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button
+              onClick={() => setShowTermsModal(false)}
+              className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Privacy Policy Modal Component
+  const PrivacyModal = () => (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setShowPrivacyModal(false)}></div>
+        
+        <div className="relative inline-block w-full max-w-4xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white shadow-xl rounded-2xl sm:my-8 sm:align-middle sm:p-6">
+          <div className="absolute top-0 right-0 pt-4 pr-4">
+            <button
+              onClick={() => setShowPrivacyModal(false)}
+              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="sm:flex sm:items-start">
+            <div className="w-full mt-3 text-center sm:mt-0 sm:text-left">
+              <h3 className="text-2xl font-bold leading-6 text-gray-900 mb-4">
+                Privacy Policy
+              </h3>
+              <div className="mt-2 max-h-96 overflow-y-auto pr-4">
+                <div className="text-sm text-gray-700 space-y-4">
+                  <h4 className="font-semibold text-lg text-emerald-600">1. Information We Collect</h4>
+                  <p>We collect personal information including your name, contact details, birth date, and other identification information necessary for the digital ID system.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">2. How We Use Your Information</h4>
+                  <p>Your information is used to:</p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>Create and maintain your digital ID</li>
+                    <li>Process barangay service requests</li>
+                    <li>Verify your identity for official transactions</li>
+                    <li>Communicate important updates about your account</li>
+                  </ul>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">3. Information Sharing</h4>
+                  <p>We do not sell, trade, or rent your personal information to third parties. Information may only be shared with authorized government agencies as required by law.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">4. Data Security</h4>
+                  <p>We implement industry-standard security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">5. Data Retention</h4>
+                  <p>Your information will be retained for as long as your account is active or as needed to provide services and comply with legal obligations.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">6. Your Rights</h4>
+                  <p>You have the right to:</p>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li>Access your personal information</li>
+                    <li>Request corrections to inaccurate data</li>
+                    <li>Request deletion of your account (subject to legal requirements)</li>
+                    <li>Withdraw consent where applicable</li>
+                  </ul>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">7. Cookies and Tracking</h4>
+                  <p>We use session cookies and local storage to maintain your login session and improve user experience. No tracking cookies are used for advertising purposes.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">8. Updates to This Policy</h4>
+                  <p>This privacy policy may be updated periodically. We will notify users of significant changes through the system or email.</p>
+                  
+                  <h4 className="font-semibold text-lg text-emerald-600">9. Contact Us</h4>
+                  <p>For privacy-related questions or requests, contact the Data Protection Officer at privacy@ebrgy.gov.ph or visit the Barangay Delpilar office.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+            <button
+              onClick={() => setShowPrivacyModal(false)}
+              className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative overflow-hidden">
@@ -696,13 +848,21 @@ const UserRegister = () => {
                       />
                       <label htmlFor="terms" className="text-sm text-gray-700 leading-relaxed">
                         I agree to the{' '}
-                        <a href="#" className="text-emerald-600 hover:text-emerald-700 font-semibold underline decoration-2 underline-offset-2">
+                        <button 
+                          type="button"
+                          onClick={() => setShowTermsModal(true)}
+                          className="text-emerald-600 hover:text-emerald-700 font-semibold underline decoration-2 underline-offset-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded"
+                        >
                           Terms and Conditions
-                        </a>{' '}
+                        </button>{' '}
                         and{' '}
-                        <a href="#" className="text-emerald-600 hover:text-emerald-700 font-semibold underline decoration-2 underline-offset-2">
+                        <button 
+                          type="button"
+                          onClick={() => setShowPrivacyModal(true)}
+                          className="text-emerald-600 hover:text-emerald-700 font-semibold underline decoration-2 underline-offset-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded"
+                        >
                           Privacy Policy
-                        </a>
+                        </button>
                       </label>
                     </div>
 
@@ -760,6 +920,120 @@ const UserRegister = () => {
           </div>
         </div>
       </div>
+
+      {/* Terms and Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900">Terms and Conditions</h2>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="prose max-w-none">
+                <h3 className="text-lg font-semibold mb-3">1. Acceptance of Terms</h3>
+                <p className="mb-4">By using the Barangay Delpilar Digital ID System, you agree to comply with and be bound by these Terms and Conditions.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">2. Eligibility and Registration</h3>
+                <p className="mb-4">You must be a verified resident of Barangay Delpilar to register for this service. All information provided during registration must be accurate and complete.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">3. Permitted Use</h3>
+                <p className="mb-4">The Digital ID is intended for official identification purposes within Barangay Delpilar and authorized partner establishments. Misuse or fraudulent use is strictly prohibited.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">4. Account Security</h3>
+                <p className="mb-4">You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">5. Data Accuracy</h3>
+                <p className="mb-4">You agree to provide accurate, current, and complete information during registration and to update such information to keep it accurate and complete.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">6. Prohibited Activities</h3>
+                <p className="mb-4">You may not use the service for any unlawful purpose, to impersonate others, or to interfere with the proper functioning of the system.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">7. Service Availability</h3>
+                <p className="mb-4">We strive to provide continuous service but do not guarantee uninterrupted access. The service may be temporarily unavailable for maintenance or technical issues.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">8. Modifications</h3>
+                <p className="mb-4">We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">9. Contact Information</h3>
+                <p className="mb-4">For questions about these terms, contact us at the Barangay Delpilar office or through our official channels.</p>
+              </div>
+            </div>
+            <div className="flex justify-end p-6 border-t">
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900">Privacy Policy</h2>
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="prose max-w-none">
+                <h3 className="text-lg font-semibold mb-3">1. Information We Collect</h3>
+                <p className="mb-4">We collect personal information including your name, address, contact details, and other identification information necessary for creating your Digital ID.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">2. How We Use Your Information</h3>
+                <p className="mb-4">Your information is used to create and maintain your Digital ID, verify your identity, and provide barangay services. We do not sell or share your personal information with third parties without your consent.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">3. Data Security</h3>
+                <p className="mb-4">We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">4. Data Retention</h3>
+                <p className="mb-4">We retain your personal information only as long as necessary to provide our services and comply with legal obligations.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">5. Your Rights</h3>
+                <p className="mb-4">You have the right to access, update, or delete your personal information. You may also withdraw consent for data processing where applicable.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">6. Cookies and Tracking</h3>
+                <p className="mb-4">We use cookies and similar technologies to enhance your experience and maintain your session. You can disable cookies in your browser settings.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">7. Third-Party Services</h3>
+                <p className="mb-4">Our service may integrate with third-party platforms for enhanced functionality. These services have their own privacy policies.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">8. Updates to Privacy Policy</h3>
+                <p className="mb-4">We may update this privacy policy from time to time. We will notify you of any material changes through the platform or other communication methods.</p>
+                
+                <h3 className="text-lg font-semibold mb-3">9. Contact Us</h3>
+                <p className="mb-4">If you have questions about this privacy policy or how we handle your personal information, please contact us at the Barangay Delpilar office.</p>
+              </div>
+            </div>
+            <div className="flex justify-end p-6 border-t">
+              <button
+                onClick={() => setShowPrivacyModal(false)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
