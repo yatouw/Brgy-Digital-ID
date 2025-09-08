@@ -489,14 +489,12 @@ const UserProfile = () => {
                             <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
                               {formData.firstName}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                             <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
                               {formData.lastName}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                         </div>
 
@@ -506,7 +504,6 @@ const UserProfile = () => {
                             <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
                               {formData.middleName || 'Not provided'}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
@@ -532,7 +529,6 @@ const UserProfile = () => {
                                 day: 'numeric'
                               }) : 'Not provided'}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
                             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -626,7 +622,6 @@ const UserProfile = () => {
                               )}
                             </div>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                         </div>
 
                         <div>
@@ -634,7 +629,6 @@ const UserProfile = () => {
                           <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
                             {formData.phone}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                         </div>
 
                         <div>
@@ -668,14 +662,12 @@ const UserProfile = () => {
                             <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
                               Delpilar
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Fixed location for this system</p>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Town/Province</label>
                             <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
                               Castillejos, Zambales
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Fixed location for this system</p>
                           </div>
                         </div>
 
@@ -684,7 +676,6 @@ const UserProfile = () => {
                           <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
                             2208
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Fixed ZIP code for this system</p>
                         </div>
 
                         <div>
