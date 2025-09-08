@@ -51,14 +51,21 @@ const UserLogin = () => {
             id: user.$id,
             name: user.name,
             email: user.email,
+            emailVerification: user.emailVerification,
             resident: resident
           }
           
           // Update auth context
           await login(userData, 'user')
           
-          // Navigate to intended destination
-          navigate(from, { replace: true })
+          // Check if email is verified
+          if (!user.emailVerification) {
+            // Redirect to email verification page
+            navigate('/auth/verify-email', { replace: true })
+          } else {
+            // Navigate to intended destination
+            navigate(from, { replace: true })
+          }
         } else {
           setError('Resident profile not found. Please contact administrator.')
         }

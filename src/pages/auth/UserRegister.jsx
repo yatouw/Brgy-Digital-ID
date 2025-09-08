@@ -29,18 +29,53 @@ const UserRegister = () => {
   const navigate = useNavigate()
   const { login } = useAuth()
 
+  // Validation functions for name fields
+  const validateNameField = (value) => {
+    // Remove any non-alphabetic characters except spaces, hyphens, and apostrophes
+    // Allow common name characters: letters, spaces, hyphens (for compound names), apostrophes (for names like O'Connor)
+    return value.replace(/[^a-zA-Z\s'-]/g, '')
+  }
+
+  const validateBirthDate = (date) => {
+    if (!date) return true // Allow empty date for validation
+    
+    const selectedDate = new Date(date)
+    const today = new Date()
+    const minDate = new Date('1900-01-01') // Reasonable minimum birth year
+    
+    // Check if date is in the future
+    if (selectedDate > today) {
+      return false
+    }
+    
+    // Check if date is too far in the past
+    if (selectedDate < minDate) {
+      return false
+    }
+    
+    return true
+  }
+
   const handleChange = (e) => {
+    let value = e.target.value
+    const name = e.target.name
+
+    // Apply name validation for firstName, lastName, and middleName
+    if (name === 'firstName' || name === 'lastName' || name === 'middleName') {
+      value = validateNameField(value)
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
 
     // Clear error when user starts typing
     if (error) setError('')
 
     // Calculate password strength
-    if (e.target.name === 'password') {
-      const password = e.target.value
+    if (name === 'password') {
+      const password = value
       let strength = 0
       if (password.length >= 8) strength++
       if (/[A-Z]/.test(password)) strength++
@@ -51,11 +86,11 @@ const UserRegister = () => {
     }
 
     // Check email availability with debounce
-    if (e.target.name === 'email') {
+    if (name === 'email') {
       setEmailExists(false)
-      const email = e.target.value.trim()
+      const email = value.trim()
       
-      if (email && email.includes('@')) {
+      if (email && email.includes('@gmail.com')) {
         // Clear previous timeout
         if (window.emailCheckTimeout) {
           clearTimeout(window.emailCheckTimeout)
@@ -70,9 +105,9 @@ const UserRegister = () => {
   }
 
   const checkEmailAvailability = async (email) => {
-    if (!email || !email.includes('@')) return
+    if (!email || !email.includes('@gmail.com')) return
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
     if (!emailRegex.test(email)) return
     
     setEmailChecking(true)
@@ -91,14 +126,69 @@ const UserRegister = () => {
       setError('First name is required')
       return false
     }
+    
+    // Check if first name contains only valid characters
+    if (!/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) {
+      setError('First name can only contain letters, spaces, hyphens, and apostrophes')
+      return false
+    }
+    
     if (!formData.lastName.trim()) {
       setError('Last name is required')
       return false
     }
+    
+    // Check if last name contains only valid characters
+    if (!/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) {
+      setError('Last name can only contain letters, spaces, hyphens, and apostrophes')
+      return false
+    }
+    
+    // Validate middle name if provided
+    if (formData.middleName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.middleName.trim())) {
+      setError('Middle name can only contain letters, spaces, hyphens, and apostrophes')
+      return false
+    }
+    
     if (!formData.birthDate) {
       setError('Birth date is required')
       return false
     }
+    
+    // Validate birth date
+    if (!validateBirthDate(formData.birthDate)) {
+      const selectedDate = new Date(formData.birthDate)
+      const today = new Date()
+      const minDate = new Date('1900-01-01')
+      
+      if (selectedDate > today) {
+        setError('Birth date cannot be in the future')
+      } else if (selectedDate < minDate) {
+        setError('Please enter a valid birth date (year 1900 or later)')
+      } else {
+        setError('Please enter a valid birth date')
+      }
+      return false
+    }
+    
+    // Check if person is at least 18 years old (optional requirement)
+    const selectedDate = new Date(formData.birthDate)
+    const today = new Date()
+    const age = today.getFullYear() - selectedDate.getFullYear()
+    const monthDiff = today.getMonth() - selectedDate.getMonth()
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+      // Haven't had birthday this year yet
+      const actualAge = age - 1
+      if (actualAge < 18) {
+        setError('You must be at least 18 years old to register')
+        return false
+      }
+    } else if (age < 18) {
+      setError('You must be at least 18 years old to register')
+      return false
+    }
+    
     return true
   }
 
@@ -108,10 +198,10 @@ const UserRegister = () => {
       return false
     }
     
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    // Gmail-only email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
     if (!emailRegex.test(formData.email.trim())) {
-      setError('Please enter a valid email address')
+      setError('Please enter a valid Gmail address')
       return false
     }
     
@@ -180,6 +270,10 @@ const UserRegister = () => {
         // Login the newly created user
         await authService.login(formData.email.trim().toLowerCase(), formData.password)
 
+        // Send email verification
+        const verificationUrl = `${window.location.origin}/auth/verify-email`
+        await authService.sendEmailVerification(verificationUrl)
+
         // Create resident profile
         const residentData = {
           userId: newUser.$id,
@@ -207,12 +301,12 @@ const UserRegister = () => {
         // Update auth context to keep user logged in
         await login(userData, 'user')
 
-        setSuccess('Account created successfully! Please complete your profile...')
+        setSuccess('Account created successfully! Please check your email to verify your account before proceeding.')
         
-        // Redirect to profile completion
+        // Redirect to email verification page
         setTimeout(() => {
-          navigate('/user/profile')
-        }, 2000)
+          navigate('/auth/verify-email')
+        }, 3000)
       }
     } catch (error) {
       console.error('Registration error:', error)
@@ -524,6 +618,8 @@ const UserRegister = () => {
                           onChange={handleChange}
                           onFocus={() => setFocusedInput('firstName')}
                           onBlur={() => setFocusedInput(null)}
+                          pattern="[a-zA-Z\s'-]+"
+                          title="Only letters, spaces, hyphens, and apostrophes are allowed"
                           className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                             focusedInput === 'firstName' 
                               ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
@@ -547,6 +643,8 @@ const UserRegister = () => {
                           onChange={handleChange}
                           onFocus={() => setFocusedInput('lastName')}
                           onBlur={() => setFocusedInput(null)}
+                          pattern="[a-zA-Z\s'-]+"
+                          title="Only letters, spaces, hyphens, and apostrophes are allowed"
                           className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                             focusedInput === 'lastName' 
                               ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
@@ -570,6 +668,8 @@ const UserRegister = () => {
                         onChange={handleChange}
                         onFocus={() => setFocusedInput('middleName')}
                         onBlur={() => setFocusedInput(null)}
+                        pattern="[a-zA-Z\s'-]*"
+                        title="Only letters, spaces, hyphens, and apostrophes are allowed"
                         className={`w-full px-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                           focusedInput === 'middleName' 
                             ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
@@ -598,6 +698,8 @@ const UserRegister = () => {
                         onChange={handleChange}
                         onFocus={() => setFocusedInput('birthDate')}
                         onBlur={() => setFocusedInput(null)}
+                        min="1900-01-01"
+                        max={new Date().toISOString().split('T')[0]}
                         className={`w-full pl-10 pr-4 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                           focusedInput === 'birthDate' 
                             ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
@@ -605,6 +707,7 @@ const UserRegister = () => {
                         }`}
                       />
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">You must be at least 18 years old to register</p>
                   </div>
 
                   <button
@@ -637,7 +740,7 @@ const UserRegister = () => {
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email Address *
+                        Gmail Address *
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -653,16 +756,18 @@ const UserRegister = () => {
                           onChange={handleChange}
                           onFocus={() => setFocusedInput('email')}
                           onBlur={() => setFocusedInput(null)}
+                          pattern="[a-zA-Z0-9._%+-]+@gmail\.com"
+                          title="Please enter a valid Gmail address "
                           className={`w-full pl-10 pr-12 py-4 border-2 rounded-xl focus:outline-none transition-all duration-300 backdrop-blur-sm bg-white/50 ${
                             focusedInput === 'email' 
                               ? 'border-emerald-500 bg-white/80 shadow-lg transform scale-[1.02]' 
                               : emailExists 
                                 ? 'border-red-300 hover:border-red-400'
-                                : formData.email && !emailExists && !emailChecking
+                                : formData.email && !emailExists && !emailChecking && /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(formData.email)
                                   ? 'border-green-300 hover:border-green-400'
                                   : 'border-gray-200 hover:border-emerald-300'
                           }`}
-                          placeholder="juan.delacruz@email.com"
+                          placeholder="juan.delacruz@gmail.com"
                         />
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                           {emailChecking ? (
@@ -671,13 +776,14 @@ const UserRegister = () => {
                             <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                          ) : formData.email && !emailExists && formData.email.includes('@') ? (
+                          ) : formData.email && !emailExists && !emailChecking && /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(formData.email) ? (
                             <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                           ) : null}
                         </div>
                       </div>
+                      <p className="text-xs text-gray-500 mt-1">Only Gmail addresses are accepted</p>
                       {emailExists && (
                         <p className="text-sm text-red-500 mt-1 flex items-center">
                           <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -689,12 +795,20 @@ const UserRegister = () => {
                           </Link>
                         </p>
                       )}
-                      {formData.email && !emailExists && !emailChecking && formData.email.includes('@') && (
+                      {formData.email && !emailExists && !emailChecking && /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(formData.email) && (
                         <p className="text-sm text-green-600 mt-1 flex items-center">
                           <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          Email is available
+                          Gmail address is available
+                        </p>
+                      )}
+                      {formData.email && formData.email.length > 5 && !/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(formData.email) && (
+                        <p className="text-sm text-red-500 mt-1 flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Please enter a valid Gmail address ending with @gmail.com
                         </p>
                       )}
                     </div>

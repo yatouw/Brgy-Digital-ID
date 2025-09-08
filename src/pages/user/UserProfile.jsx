@@ -33,7 +33,7 @@ const UserProfile = () => {
     bloodType: '',
     occupation: '',
     streetAddress: '',
-    barangay: '',
+    barangay: 'Delpilar', // Fixed default value - not editable
     city: 'Castillejos, Zambales', // Default value
     zipCode: '2208', // Default value
     emergencyContactName: '',
@@ -42,20 +42,50 @@ const UserProfile = () => {
   })
 
   // Check if user just registered and needs to complete profile
-  const isNewUser = user?.resident && !user.resident.streetAddress && !user.resident.barangay
+  const isNewUser = user?.resident && !user.resident.streetAddress
 
   // Check if profile is complete and can generate ID
   const isProfileComplete = () => {
     const requiredFields = [
       'firstName', 'lastName', 'birthDate', 'gender', 'civilStatus', 
-      'bloodType', 'phone', 'streetAddress', 'barangay', 'city', 'zipCode',
+      'bloodType', 'phone', 'streetAddress',
       'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelation'
     ]
     
     return requiredFields.every(field => {
       const value = formData[field]
       return value && value.toString().trim() !== ''
-    })
+    }) && formData.barangay === 'Delpilar' && formData.city === 'Castillejos, Zambales' && formData.zipCode === '2208' // Fixed location fields are always complete
+  }
+
+  // Helper function to check if a field is filled
+  const isFieldComplete = (fieldName) => {
+    const value = formData[fieldName]
+    return value && value.toString().trim() !== ''
+  }
+
+  // Helper function to get indicator icon
+  const getFieldIndicator = (fieldName, isRequired = true) => {
+    if (!isRequired) return null
+    
+    const isComplete = isFieldComplete(fieldName)
+    
+    if (isComplete) {
+      return <FaCheck className="w-4 h-4 text-green-500 ml-1" />
+    } else {
+      return <div className="w-2 h-2 bg-red-500 rounded-full ml-1 animate-pulse"></div>
+    }
+  }
+
+  // Calculate completion percentage
+  const getCompletionPercentage = () => {
+    const requiredFields = [
+      'gender', 'civilStatus', 'bloodType', 'streetAddress',
+      'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRelation'
+    ]
+    
+    const completedFields = requiredFields.filter(field => isFieldComplete(field)).length
+    return Math.round((completedFields / requiredFields.length) * 100)
   }
 
   // Check if user has already completed profile (disable editing after completion)
@@ -91,7 +121,7 @@ const UserProfile = () => {
             bloodType: userInfo.bloodType || '',
             occupation: userInfo.occupation || '',
             streetAddress: userInfo.address || '', // Match your collection field name
-            barangay: userInfo.barangay || '',
+            barangay: 'Delpilar', // Always set to Delpilar - not editable
             city: userInfo.city || 'Castillejos, Zambales', // Default value if not set
             zipCode: userInfo.zipCode || '2208', // Default value if not set
             emergencyContactName: userInfo.emergencyContactName || '',
@@ -105,7 +135,7 @@ const UserProfile = () => {
             bloodType: '',
             occupation: '',
             streetAddress: '',
-            barangay: '',
+            barangay: 'Delpilar', // Always default to Delpilar for new users
             city: 'Castillejos, Zambales', // Default value for new users
             zipCode: '2208', // Default value for new users
             emergencyContactName: '',
@@ -121,7 +151,7 @@ const UserProfile = () => {
             setHasCompletedProfile(false)
           } else {
             // Check if this is the first time completing profile
-            const profileWasComplete = userInfo.address && userInfo.barangay && userInfo.gender && userInfo.civilStatus && userInfo.bloodType
+            const profileWasComplete = userInfo.address && userInfo.gender && userInfo.civilStatus && userInfo.bloodType
             setHasCompletedProfile(profileWasComplete)
           }
         } catch (error) {
@@ -182,7 +212,7 @@ const UserProfile = () => {
           bloodType: formData.bloodType,
           occupation: formData.occupation,
           address: formData.streetAddress, // Match your collection field name
-          barangay: formData.barangay,
+          barangay: 'Delpilar', // Always save as Delpilar
           city: formData.city,
           zipCode: formData.zipCode,
           emergencyContactName: formData.emergencyContactName,
@@ -426,6 +456,25 @@ const UserProfile = () => {
                       </div>
                     )}
 
+                    {/* Profile Completion Progress */}
+                    <div className="bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl p-4 border border-blue-200 mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-gray-800">Profile Completion</h3>
+                        <span className="text-sm font-bold text-emerald-600">{getCompletionPercentage()}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${getCompletionPercentage()}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-2">
+                        {getCompletionPercentage() === 100 
+                          ? "🎉 Profile completed! You can now generate your Digital ID." 
+                          : "Complete all required fields to unlock your Digital ID"}
+                      </p>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Basic Information */}
                       <div className="space-y-4">
@@ -437,39 +486,27 @@ const UserProfile = () => {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                            <input
-                              type="text"
-                              name="firstName"
-                              value={formData.firstName}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                              {formData.firstName}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                            <input
-                              type="text"
-                              name="lastName"
-                              value={formData.lastName}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                              {formData.lastName}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-3 gap-4">
                           <div className="col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
-                            <input
-                              type="text"
-                              name="middleName"
-                              value={formData.middleName}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                              {formData.middleName || 'Not provided'}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
@@ -488,23 +525,28 @@ const UserProfile = () => {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
-                            <input
-                              type="date"
-                              name="birthDate"
-                              value={formData.birthDate}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                              {formData.birthDate ? new Date(formData.birthDate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              }) : 'Not provided'}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                            <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                              Gender
+                              {getFieldIndicator('gender')}
+                            </label>
                             <select
                               name="gender"
                               value={formData.gender}
                               onChange={handleInputChange}
                               disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                                isFieldComplete('gender') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                              }`}
                             >
                               <option value="">Select Gender</option>
                               <option value="Male">Male</option>
@@ -516,13 +558,18 @@ const UserProfile = () => {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Civil Status</label>
+                            <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                              Civil Status
+                              {getFieldIndicator('civilStatus')}
+                            </label>
                             <select
                               name="civilStatus"
                               value={formData.civilStatus}
                               onChange={handleInputChange}
                               disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                                isFieldComplete('civilStatus') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                              }`}
                             >
                               <option value="">Select Civil Status</option>
                               <option value="Single">Single</option>
@@ -532,13 +579,18 @@ const UserProfile = () => {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
+                            <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                              Blood Type
+                              {getFieldIndicator('bloodType')}
+                            </label>
                             <select
                               name="bloodType"
                               value={formData.bloodType}
                               onChange={handleInputChange}
                               disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                                isFieldComplete('bloodType') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                              }`}
                             >
                               <option value="">Select Blood Type</option>
                               <option value="A+">A+</option>
@@ -563,75 +615,76 @@ const UserProfile = () => {
                         
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                          />
+                          <div className="relative w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                            <div className="flex items-center justify-between">
+                              <span>{formData.email}</span>
+                              {user?.emailVerification && (
+                                <div className="flex items-center text-green-600">
+                                  <FaCheck className="w-4 h-4 mr-1" />
+                                  <span className="text-xs font-medium">Verified</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                          />
+                          <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                            {formData.phone}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Set during registration</p>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                          <input
-                            type="text"
+                          <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                            Street Address
+                            {getFieldIndicator('streetAddress')}
+                          </label>
+                          <select
                             name="streetAddress"
                             value={formData.streetAddress}
                             onChange={handleInputChange}
                             disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
-                          <input
-                            type="text"
-                            name="barangay"
-                            value={formData.barangay}
-                            onChange={handleInputChange}
-                            disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                          />
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                              isFieldComplete('streetAddress') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                            }`}
+                          >
+                            <option value="">Select Purok</option>
+                            <option value="Purok 1">Purok 1</option>
+                            <option value="Purok 2">Purok 2</option>
+                            <option value="Purok 3">Purok 3</option>
+                            <option value="Purok 4">Purok 4</option>
+                            <option value="Purok 5">Purok 5</option>
+                            <option value="Purok 6">Purok 6</option>
+                            <option value="Purok 7">Purok 7</option>
+                          </select>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Town/Province</label>
-                            <input
-                              type="text"
-                              name="city"
-                              value={formData.city}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Barangay</label>
+                            <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
+                              Delpilar
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Fixed location for this system</p>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                            <input
-                              type="text"
-                              name="zipCode"
-                              value={formData.zipCode}
-                              onChange={handleInputChange}
-                              disabled={!isEditing}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Town/Province</label>
+                            <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
+                              Castillejos, Zambales
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Fixed location for this system</p>
                           </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                          <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 font-medium">
+                            2208
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Fixed ZIP code for this system</p>
                         </div>
 
                         <div>
@@ -657,35 +710,50 @@ const UserProfile = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                          <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                            Full Name
+                            {getFieldIndicator('emergencyContactName')}
+                          </label>
                           <input
                             type="text"
                             name="emergencyContactName"
                             value={formData.emergencyContactName}
                             onChange={handleInputChange}
                             disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                              isFieldComplete('emergencyContactName') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                          <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                            Phone Number
+                            {getFieldIndicator('emergencyContactPhone')}
+                          </label>
                           <input
                             type="tel"
                             name="emergencyContactPhone"
                             value={formData.emergencyContactPhone}
                             onChange={handleInputChange}
                             disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                              isFieldComplete('emergencyContactPhone') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                            }`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
+                          <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+                            Relationship
+                            {getFieldIndicator('emergencyContactRelation')}
+                          </label>
                           <select
                             name="emergencyContactRelation"
                             value={formData.emergencyContactRelation}
                             onChange={handleInputChange}
                             disabled={!isEditing}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300"
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 transition-all duration-300 ${
+                              isFieldComplete('emergencyContactRelation') ? 'border-green-300 bg-green-50' : 'border-red-300'
+                            }`}
                           >
                             <option value="">Select Relationship</option>
                             <option value="Spouse">Spouse</option>

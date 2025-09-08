@@ -85,6 +85,34 @@ export const authService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Send email verification
+  async sendEmailVerification(url) {
+    try {
+      return await account.createVerification(url);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Verify email with secret
+  async verifyEmail(userId, secret) {
+    try {
+      return await account.updateVerification(userId, secret);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Check if email is verified
+  async isEmailVerified() {
+    try {
+      const user = await account.get();
+      return user.emailVerification;
+    } catch (error) {
+      return false;
+    }
   }
 };
 

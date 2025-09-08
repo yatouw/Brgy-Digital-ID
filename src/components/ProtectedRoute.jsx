@@ -24,7 +24,7 @@ const AuthLoading = () => (
 
 // ProtectedRoute component for user routes
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -34,6 +34,11 @@ export const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated) {
     // Redirect to login with the intended destination
     return <Navigate to="/auth/login" state={{ from: location }} replace />
+  }
+
+  // Check if email is verified (skip verification check for verification page itself)
+  if (user && !user.emailVerification && location.pathname !== '/auth/verify-email') {
+    return <Navigate to="/auth/verify-email" replace />
   }
 
   return children

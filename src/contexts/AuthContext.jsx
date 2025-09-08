@@ -84,8 +84,17 @@ export function AuthProvider({ children }) {
         const currentUser = await authService.getCurrentUser()
         
         if (currentUser) {
-          setUser(storedUser)
+          // Update stored user data with latest info including email verification
+          const updatedUserData = {
+            ...storedUser,
+            emailVerification: currentUser.emailVerification
+          }
+          
+          setUser(updatedUserData)
           setIsAuthenticated(true)
+          
+          // Update session data with latest info
+          sessionManager.setSessionData('user', updatedUserData)
           
           // Check if user is admin based on stored type first
           if (storedUserType === 'admin') {
@@ -132,6 +141,7 @@ export function AuthProvider({ children }) {
                 id: currentUser.$id,
                 name: currentUser.name,
                 email: currentUser.email,
+                emailVerification: currentUser.emailVerification,
                 isAdmin: true,
                 adminData: adminData || {}
               }
@@ -150,6 +160,7 @@ export function AuthProvider({ children }) {
                   id: currentUser.$id,
                   name: currentUser.name,
                   email: currentUser.email,
+                  emailVerification: currentUser.emailVerification,
                   resident: resident
                 }
                 

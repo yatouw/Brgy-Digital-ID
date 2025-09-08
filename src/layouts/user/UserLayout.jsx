@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FaHome, FaIdCard, FaClipboardList, FaUser, FaSignOutAlt } from 'react-icons/fa'
 import { useAuth } from '../../contexts/AuthContext'
 import NotificationDropdown from '../../components/NotificationDropdown'
+import EmailVerificationBanner from '../../components/EmailVerificationBanner'
 import ErrorBoundary from '../../components/ErrorBoundary'
 
 const UserLayout = ({ children }) => {
@@ -169,6 +170,7 @@ const UserLayout = ({ children }) => {
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
           <ErrorBoundary>
+            <EmailVerificationBanner />
             {children}
           </ErrorBoundary>
         </main>

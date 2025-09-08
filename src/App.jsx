@@ -19,6 +19,7 @@ import UnauthorizedPage from './pages/shared/UnauthorizedPage'
 import UserLogin from './pages/auth/UserLogin'
 import UserRegister from './pages/auth/UserRegister'
 import AdminLogin from './pages/auth/AdminLogin'
+import EmailVerification from './pages/auth/EmailVerification'
 
 // User Pages
 import UserDashboard from './pages/user/UserDashboard'
@@ -59,6 +60,8 @@ function App() {
               <UserRegister />
             </PublicRoute>
           } />
+          
+          <Route path="/auth/verify-email" element={<EmailVerification />} />
           
           <Route path="/admin/login" element={
             <PublicRoute>
